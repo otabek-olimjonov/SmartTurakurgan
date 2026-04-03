@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
@@ -30,6 +31,7 @@ class SyncEngine {
   }
 
   bool _shouldSync(SharedPreferences prefs) {
+    if (kDebugMode) return true; // Always sync in debug mode
     final lastSyncStr = prefs.getString(_lastSyncKey);
     if (lastSyncStr == null) return true;
     final lastSync = DateTime.tryParse(lastSyncStr);

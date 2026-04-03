@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 import { useAuthStore } from './store/auth.store'
 import Shell from './components/layout/Shell'
 import LoginPage from './pages/auth/LoginPage'
+import AcceptInvitePage from './pages/auth/AcceptInvitePage'
 import DashboardPage from './pages/dashboard/DashboardPage'
 import RahbariyatPage from './pages/rahbariyat/RahbariyatPage'
 import MahallalarPage from './pages/mahallalar/MahallalarPage'
@@ -10,6 +11,7 @@ import YerPage from './pages/yer/YerPage'
 import YangilikPage from './pages/yangiliklar/YangilikPage'
 import MurojaatlarPage from './pages/murojaatlar/MurojaatlarPage'
 import NotificationsPage from './pages/notifications/NotificationsPage'
+import AdminUsersPage from './pages/admins/AdminUsersPage'
 
 function RequireAuth() {
   const { session, loading } = useAuthStore()
@@ -26,6 +28,7 @@ function RequireAuth() {
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
+  { path: '/accept-invite', element: <AcceptInvitePage /> },
   {
     element: <RequireAuth />,
     children: [
@@ -41,6 +44,7 @@ export const router = createBrowserRouter([
           { path: 'yangiliklar', element: <YangilikPage /> },
           { path: 'murojaatlar', element: <MurojaatlarPage /> },
           { path: 'notifications', element: <NotificationsPage /> },
+          { path: 'admins', element: <AdminUsersPage /> },
         ],
       },
     ],

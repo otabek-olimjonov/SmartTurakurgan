@@ -11,6 +11,7 @@ const TITLES: Record<string, string> = {
   '/yangiliklar': 'Yangiliklar',
   '/murojaatlar': 'Murojaatlar',
   '/notifications': 'Bildirishnomalar',
+  '/admins': 'Foydalanuvchilar',
 }
 
 function getTitle(pathname: string): string {
@@ -23,9 +24,9 @@ function getTitle(pathname: string): string {
 
 export default function Header() {
   const { pathname } = useLocation()
-  const { session, signOut } = useAuthStore()
+  const { session, profile, signOut } = useAuthStore()
   const email = session?.user.email ?? ''
-  const name = session?.user.user_metadata?.full_name as string | undefined
+  const name = profile?.full_name ?? (session?.user.user_metadata?.full_name as string | undefined)
 
   return (
     <header className="h-12 bg-white border-b border-[#E8E6E1] flex items-center px-5 gap-4 shrink-0">

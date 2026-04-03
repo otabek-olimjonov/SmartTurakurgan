@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { useAuthStore } from '../../store/auth.store'
 import Input from '../../components/ui/Input'
 import Button from '../../components/ui/Button'
 
@@ -13,6 +15,8 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>
 
 export default function LoginPage() {
+  const { session } = useAuthStore()
+  const navigate = useNavigate()
   const [serverError, setServerError] = useState('')
   const {
     register,
@@ -20,13 +24,19 @@ export default function LoginPage() {
     formState: { errors, isSubmitting },
   } = useForm<FormData>({ resolver: zodResolver(schema) })
 
+  if (session) return <Navigate to="/dashboard" replace />
+
   async function onSubmit(data: FormData) {
     setServerError('')
     const { error } = await supabase.auth.signInWithPassword({
       email: data.email,
       password: data.password,
     })
-    if (error) setServerError(error.message)
+    if (error) {
+      setServerError(error.message)
+    } else {
+      navigate('/dashboard', { replace: true })
+    }
   }
 
   return (

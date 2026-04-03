@@ -26,6 +26,7 @@ interface AdminProfile {
 const inviteSchema = z.object({
   email: z.string().email("To'g'ri email kiriting"),
   role: z.enum(['admin', 'superadmin']),
+  temp_password: z.string().min(8, 'Kamida 8 ta belgi'),
 })
 type InviteFormData = z.infer<typeof inviteSchema>
 
@@ -135,7 +136,7 @@ export default function AdminUsersPage() {
         {isSuperadmin && (
           <Button variant="primary" size="sm" onClick={openInvite}>
             <UserPlus size={14} />
-            Taklif yuborish
+            Admin yaratish
           </Button>
         )}
       </div>
@@ -204,7 +205,7 @@ export default function AdminUsersPage() {
       </div>
 
       {/* ── Invite modal ─────────────────────────────────────────────────────── */}
-      <Modal open={inviteOpen} title="Admin taklif qilish" onClose={() => setInviteOpen(false)}>
+      <Modal open={inviteOpen} title="Yangi admin yaratish" onClose={() => setInviteOpen(false)}>
         <form
           onSubmit={inviteForm.handleSubmit(onInviteSubmit)}
           className="flex flex-col gap-4"
@@ -224,6 +225,17 @@ export default function AdminUsersPage() {
             ]}
             {...inviteForm.register('role')}
           />
+          <Input
+            label="Vaqtinchalik parol"
+            type="text"
+            placeholder="Min. 8 ta belgi"
+            autoComplete="off"
+            error={inviteForm.formState.errors.temp_password?.message}
+            {...inviteForm.register('temp_password')}
+          />
+          <p className="text-xs text-[#888780] -mt-2">
+            Bu parolni yangi adminга xabar orqali yuboring. Kirganidan so'ng o'zgartirishi mumkin.
+          </p>
 
           {inviteError && (
             <p className="text-xs text-[#E24B4A]">{inviteError}</p>
@@ -244,7 +256,7 @@ export default function AdminUsersPage() {
               size="sm"
               loading={inviteMutation.isPending}
             >
-              Taklif yuborish
+            Yaratish
             </Button>
           </div>
         </form>

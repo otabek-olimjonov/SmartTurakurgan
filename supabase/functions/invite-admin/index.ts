@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
     }
 
     // ── 3. Validate request body ──────────────────────────────────────────
-    let body: { email?: unknown; role?: unknown }
+    let body: { email?: unknown; role?: unknown; temp_password?: unknown }
     try {
       body = await req.json()
     } catch {
@@ -65,38 +65,35 @@ Deno.serve(async (req) => {
       )
     }
 
-    const inviteRole = role === 'superadmin' ? 'superadmin' : 'admin'
-
-    // ── 4. Build redirect URL from the request origin ─────────────────────
-    const origin = req.headers.get('origin') ?? req.headers.get('referer')?.replace(/\/$/, '') ?? ''
-    const redirectTo = origin ? `${origin}/accept-invite` : undefined
-
-    // ── 5. Send the invite email ───────────────────────────────────────────
-    const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-      email.trim().toLowerCase(),
-      { redirectTo },
-    )
-
-    if (inviteError) {
+    if (!body.temp_password || typeof body.temp_password !== 'string' || (body.temp_password as string).length < 8) {
       return new Response(
-        JSON.stringify({ error: inviteError.message }),
+        JSON.stringify({ error: 'temp_password must be at least 8 characters', field: 'temp_password' }),
         { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       )
     }
 
-    // ── 6. Set app_metadata.role so the user gets the right permissions ───
-    if (inviteData?.user?.id) {
-      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-        inviteData.user.id,
-        { app_metadata: { role: inviteRole } },
-      )
-      if (updateError) {
-        console.error('[invite-admin] Failed to set role:', updateError.message)
-      }
+    const inviteRole = role === 'superadmin' ? 'superadmin' : 'admin'
+    const tempPassword = body.temp_password as string
 
-      // Also insert profile row in case trigger hasn't fired yet
+    // ── 4. Create user with temp password (email confirmed immediately) ───
+    const { data: createData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      email: email.trim().toLowerCase(),
+      password: tempPassword,
+      email_confirm: true,
+      app_metadata: { role: inviteRole },
+    })
+
+    if (createError) {
+      return new Response(
+        JSON.stringify({ error: createError.message }),
+        { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
+
+    // ── 5. Upsert profile row ─────────────────────────────────────────────
+    if (createData?.user?.id) {
       await supabaseAdmin.from('profiles').upsert({
-        id: inviteData.user.id,
+        id: createData.user.id,
         full_name: email.split('@')[0],
         role: inviteRole,
       }, { onConflict: 'id' })

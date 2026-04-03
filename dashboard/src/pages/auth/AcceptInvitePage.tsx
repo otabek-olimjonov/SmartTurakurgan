@@ -32,15 +32,38 @@ export default function AcceptInvitePage() {
   } = useForm<FormData>({ resolver: zodResolver(schema) as never })
 
   useEffect(() => {
-    // Supabase automatically exchanges the invite token from the URL hash
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        // No active session — invite link is invalid or expired
-        navigate('/login', { replace: true })
-      } else {
-        setChecking(false)
+    // Supabase exchanges the invite token from the URL hash asynchronously.
+    // We must wait for the SIGNED_IN event rather than calling getSession() immediately.
+    let settled = false
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!settled) {
+        settled = true
+        if (session) {
+          setChecking(false)
+        } else {
+          navigate('/login', { replace: true })
+        }
       }
     })
+
+    // Fallback: if no auth event fires within 4 seconds, check session manually
+    const timeout = setTimeout(async () => {
+      if (!settled) {
+        settled = true
+        const { data } = await supabase.auth.getSession()
+        if (data.session) {
+          setChecking(false)
+        } else {
+          navigate('/login', { replace: true })
+        }
+      }
+    }, 4000)
+
+    return () => {
+      subscription.unsubscribe()
+      clearTimeout(timeout)
+    }
   }, [navigate])
 
   async function onSubmit(data: FormData) {

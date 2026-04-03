@@ -25,7 +25,7 @@ export default function Modal({ open, title, onClose, children, size = 'md' }: M
       ref={dialogRef}
       onCancel={onClose}
       className={cn(
-        'rounded-xl border border-[#E8E6E1] bg-white p-0 shadow-lg backdrop:bg-black/30',
+        'rounded-xl border border-[#E8E6E1] bg-white p-0 shadow-lg backdrop:bg-black/30 m-auto',
         size === 'md' ? 'w-full max-w-md' : 'w-full max-w-2xl',
       )}
     >

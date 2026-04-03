@@ -90,9 +90,23 @@ export default function AdminUsersPage() {
   // ── Delete mutation ──────────────────────────────────────────────────────────
   const deleteMutation = useMutation({
     mutationFn: async (userId: string) => {
-      // Remove profile row (cascade handles auth.users link)
-      const { error } = await supabase.from('profiles').delete().eq('id', userId)
-      if (error) throw new Error(error.message)
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) throw new Error('Not authenticated')
+
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/invite-admin`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ user_id: userId }),
+        },
+      )
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? 'Xatolik yuz berdi')
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-profiles'] })

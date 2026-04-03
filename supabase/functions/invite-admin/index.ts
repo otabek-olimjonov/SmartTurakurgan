@@ -45,6 +45,48 @@ Deno.serve(async (req) => {
       )
     }
 
+    // ── DELETE: remove a user from auth.users (cascade deletes profile) ──
+    if (req.method === 'DELETE') {
+      let deleteBody: { user_id?: unknown }
+      try {
+        deleteBody = await req.json()
+      } catch {
+        return new Response(
+          JSON.stringify({ error: 'Invalid JSON body' }),
+          { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        )
+      }
+
+      const { user_id } = deleteBody
+      if (!user_id || typeof user_id !== 'string') {
+        return new Response(
+          JSON.stringify({ error: 'user_id is required', field: 'user_id' }),
+          { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        )
+      }
+
+      // Prevent superadmin from deleting themselves
+      if (user_id === user.id) {
+        return new Response(
+          JSON.stringify({ error: 'Cannot delete your own account' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        )
+      }
+
+      const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user_id)
+      if (deleteError) {
+        return new Response(
+          JSON.stringify({ error: deleteError.message }),
+          { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        )
+      }
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
+
     // ── 3. Validate request body ──────────────────────────────────────────
     let body: { email?: unknown; role?: unknown; temp_password?: unknown }
     try {

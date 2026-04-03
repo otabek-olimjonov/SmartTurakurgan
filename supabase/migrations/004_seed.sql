@@ -9,7 +9,7 @@ VALUES
     'Ergashev Shuhrat Baxtiyor o''g''li',
     1978,
     'Turakurgan tumani hokimi',
-    'hokim',
+    'rahbariyat',
     '+998(69) 220-00-01',
     'Ergashev Shuhrat Baxtiyor o''g''li 1978-yilda Turakurgan tumanida tug''ilgan. Oliy ma''lumotli iqtisodchi. 2020-yildan buyon tuman hokimi lavozimida faoliyat yuritmoqda.',
     'Dushanba va Chorshanba: 9:00–12:00',

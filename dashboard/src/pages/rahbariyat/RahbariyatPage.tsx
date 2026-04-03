@@ -11,7 +11,6 @@ import Textarea from '../../components/ui/Textarea'
 import Select from '../../components/ui/Select'
 import Modal from '../../components/ui/Modal'
 import Pagination from '../../components/ui/Pagination'
-import { formatDate } from '../../lib/utils'
 
 const PAGE_SIZE = 20
 
@@ -80,11 +79,11 @@ export default function RahbariyatPage() {
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<FormData>({ resolver: zodResolver(schema) })
+  } = useForm<FormData>({ resolver: zodResolver(schema) as any })
 
   function openCreate() {
     setEditing(null)
-    reset({ category: 'hokim', sort_order: 0, is_published: true })
+    reset({ category: 'rahbariyat', sort_order: 0, is_published: true })
     setModalOpen(true)
   }
 
@@ -94,7 +93,7 @@ export default function RahbariyatPage() {
       full_name: person.full_name,
       position: person.position,
       category: person.category,
-      birth_year: person.birth_year ?? '',
+      birth_year: person.birth_year ?? undefined,
       phone: person.phone ?? '',
       biography: person.biography ?? '',
       reception_days: person.reception_days ?? '',
@@ -109,7 +108,7 @@ export default function RahbariyatPage() {
     mutationFn: async (values: FormData) => {
       const payload = {
         ...values,
-        birth_year: values.birth_year === '' ? null : values.birth_year,
+        birth_year: values.birth_year == null ? null : values.birth_year,
         photo_url: values.photo_url === '' ? null : values.photo_url,
       }
       if (editing) {

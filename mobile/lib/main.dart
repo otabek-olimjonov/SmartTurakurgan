@@ -149,7 +149,7 @@ class _SyncBootstrap extends ConsumerStatefulWidget {
 }
 
 class _SyncBootstrapState extends ConsumerState<_SyncBootstrap> {
-  bool _syncStarted = false;
+  bool _synced = false;
 
   @override
   void initState() {
@@ -158,13 +158,19 @@ class _SyncBootstrapState extends ConsumerState<_SyncBootstrap> {
   }
 
   Future<void> _kickoffSync() async {
-    if (_syncStarted) return;
-    _syncStarted = true;
     final jwt = await SecureStorage.getJwt();
     final dio = buildDio(jwt);
-    SyncEngine(dio).runSync();
+    await SyncEngine(dio).runSync();
+    if (mounted) setState(() => _synced = true);
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) {
+    if (!_synced) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    return widget.child;
+  }
 }

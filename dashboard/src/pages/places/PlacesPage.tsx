@@ -100,7 +100,7 @@ export default function PlacesPage() {
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<FormData>({ resolver: zodResolver(schema) })
+  } = useForm<FormData>({ resolver: zodResolver(schema) as any })
 
   function openCreate() {
     setEditing(null)
@@ -224,7 +224,7 @@ export default function PlacesPage() {
         onClose={() => setModalOpen(false)}
         size="lg"
       >
-        <form onSubmit={handleSubmit((v) => saveMutation.mutateAsync(v))} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit((v) => saveMutation.mutateAsync(v as FormData))} className="flex flex-col gap-4">
           <Input label="Nomi *" error={errors.name?.message} {...register('name')} />
           <div className="grid grid-cols-2 gap-4">
             <Input label="Direktor / Rahbar" {...register('director')} />

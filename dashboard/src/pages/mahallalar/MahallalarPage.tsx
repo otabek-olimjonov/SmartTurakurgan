@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Plus, Pencil, Trash2, ChevronDown, ChevronRight } from 'lucide-react'
+import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
@@ -16,10 +16,10 @@ const PAGE_SIZE = 20
 const mahallSchema = z.object({
   name: z.string().min(2, 'Nomni kiriting'),
   description: z.string().optional(),
-  location_lat: z.coerce.number().optional().or(z.literal('')),
-  location_lng: z.coerce.number().optional().or(z.literal('')),
-  building_photo_url: z.string().url().optional().or(z.literal('')),
-  is_published: z.boolean().default(true),
+  location_lat: z.union([z.coerce.number(), z.literal('')]).optional(),
+  location_lng: z.union([z.coerce.number(), z.literal('')]).optional(),
+  building_photo_url: z.string().optional(),
+  is_published: z.boolean(),
 })
 type MahallForm = z.infer<typeof mahallSchema>
 
@@ -60,7 +60,7 @@ export default function MahallalarPage() {
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<MahallForm>({ resolver: zodResolver(mahallSchema) })
+  } = useForm<MahallForm>({ resolver: zodResolver(mahallSchema) as any })
 
   function openCreate() {
     setEditing(null)
@@ -182,7 +182,7 @@ export default function MahallalarPage() {
         onClose={() => setModalOpen(false)}
         size="lg"
       >
-        <form onSubmit={handleSubmit((v) => saveMutation.mutateAsync(v))} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit((v) => saveMutation.mutateAsync(v as MahallForm))} className="flex flex-col gap-4">
           <Input label="Nomi *" error={errors.name?.message} {...register('name')} />
           <Textarea label="Tavsif" rows={3} {...register('description')} />
           <div className="grid grid-cols-2 gap-4">

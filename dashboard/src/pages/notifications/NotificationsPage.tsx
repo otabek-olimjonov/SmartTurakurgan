@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -44,7 +43,7 @@ export default function NotificationsPage() {
   const qc = useQueryClient()
   const { data, isLoading } = useQuery({ queryKey: ['notifications'], queryFn: fetchNotifications })
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({ resolver: zodResolver(schema) })
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({ resolver: zodResolver(schema) as any })
 
   const sendMutation = useMutation({
     mutationFn: async (values: FormData) => {
@@ -62,7 +61,7 @@ export default function NotificationsPage() {
       {/* Send form */}
       <div className="bg-white border border-[#E8E6E1] rounded-xl p-5">
         <h2 className="text-sm font-medium mb-4">Yangi bildirishnoma</h2>
-        <form onSubmit={handleSubmit((v) => sendMutation.mutateAsync(v))} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit((v) => sendMutation.mutateAsync(v as unknown as FormData))} className="flex flex-col gap-4">
           <Input label="Sarlavha *" error={errors.title?.message} {...register('title')} />
           <Textarea label="Matn" rows={4} {...register('body')} />
           <Select label="Kimga" options={TARGET_OPTIONS} {...register('target')} />

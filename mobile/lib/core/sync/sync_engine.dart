@@ -18,7 +18,7 @@ class SyncEngine {
     final prefs = await SharedPreferences.getInstance();
     final firstDone = prefs.getBool(_firstInstallKey) ?? false;
 
-    if (!firstDone) {
+    if (!firstDone || kDebugMode) {
       await _fullSync();
       await prefs.setBool(_firstInstallKey, true);
     } else {
@@ -47,8 +47,8 @@ class SyncEngine {
       await _writeSyncData(db, data);
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_lastSyncKey, DateTime.now().toIso8601String());
-    } catch (_) {
-      // Offline — skip, will retry next time
+    } catch (e) {
+      debugPrint('[SyncEngine] fullSync error: $e');
     }
   }
 
@@ -60,8 +60,8 @@ class SyncEngine {
       final db = await LocalDatabase.instance;
       await _writeSyncData(db, data);
       await prefs.setString(_lastSyncKey, DateTime.now().toIso8601String());
-    } catch (_) {
-      // Offline — skip
+    } catch (e) {
+      debugPrint('[SyncEngine] deltaSync error: $e');
     }
   }
 
@@ -71,8 +71,8 @@ class SyncEngine {
       final news = (resp.data['yangiliklar'] as List?) ?? [];
       final db = await LocalDatabase.instance;
       await _upsertRows(db, 'yangiliklar', news);
-    } catch (_) {
-      // Offline — use cached news
+    } catch (e) {
+      debugPrint('[SyncEngine] newsSync error: $e');
     }
   }
 
@@ -93,8 +93,20 @@ class SyncEngine {
     }
   }
 
+  // Cache of table columns to avoid repeated PRAGMA queries
+  final Map<String, Set<String>> _tableColumns = {};
+
+  Future<Set<String>> _getTableColumns(Database db, String table) async {
+    if (_tableColumns.containsKey(table)) return _tableColumns[table]!;
+    final info = await db.rawQuery('PRAGMA table_info($table)');
+    final cols = info.map((r) => r['name'] as String).toSet();
+    _tableColumns[table] = cols;
+    return cols;
+  }
+
   Future<void> _upsertRows(Database db, String table, List rows) async {
     if (rows.isEmpty) return;
+    final cols = await _getTableColumns(db, table);
     final batch = db.batch();
     for (final row in rows) {
       final r = Map<String, dynamic>.from(row as Map);
@@ -106,6 +118,8 @@ class SyncEngine {
       if (r.containsKey('is_published')) {
         r['is_published'] = (r['is_published'] == true) ? 1 : 0;
       }
+      // Remove columns that don't exist in local schema (e.g. created_at)
+      r.removeWhere((key, _) => !cols.contains(key));
       batch.insert(table, r, conflictAlgorithm: ConflictAlgorithm.replace);
     }
     await batch.commit(noResult: true);

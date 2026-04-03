@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS rahbariyat (
   birth_year     int,
   position       text        NOT NULL,
   category       text        NOT NULL
-                             CHECK (category IN ('hokim', 'apparat', 'deputat', 'kotibiyat')),
+                             CHECK (category IN ('rahbariyat', 'apparat', 'deputat', 'kotibiyat')),
   phone          text,
   biography      text,
   reception_days text,

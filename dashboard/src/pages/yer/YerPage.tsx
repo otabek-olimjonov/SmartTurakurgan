@@ -65,7 +65,7 @@ export default function YerPage() {
 
   const { data, isLoading } = useQuery({ queryKey: ['yer', page], queryFn: () => fetchYer(page) })
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({ resolver: zodResolver(schema) })
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({ resolver: zodResolver(schema) as any })
 
   function openCreate() {
     setEditing(null)
@@ -76,9 +76,9 @@ export default function YerPage() {
     setEditing(y)
     reset({
       title: y.title,
-      area_hectares: y.area_hectares ?? '',
-      location_lat: y.location_lat ?? '',
-      location_lng: y.location_lng ?? '',
+      area_hectares: y.area_hectares ?? undefined,
+      location_lat: y.location_lat ?? undefined,
+      location_lng: y.location_lng ?? undefined,
       status: y.status,
       auction_url: y.auction_url ?? '',
       is_published: y.is_published,
@@ -90,9 +90,9 @@ export default function YerPage() {
     mutationFn: async (values: FormData) => {
       const payload = {
         ...values,
-        area_hectares: values.area_hectares === '' ? null : values.area_hectares,
-        location_lat: values.location_lat === '' ? null : values.location_lat,
-        location_lng: values.location_lng === '' ? null : values.location_lng,
+        area_hectares: values.area_hectares == null ? null : values.area_hectares,
+        location_lat: values.location_lat == null ? null : values.location_lat,
+        location_lng: values.location_lng == null ? null : values.location_lng,
         auction_url: values.auction_url === '' ? null : values.auction_url,
       }
       if (editing) {
@@ -172,7 +172,7 @@ export default function YerPage() {
       )}
 
       <Modal open={modalOpen} title={editing ? 'Tahrirlash' : "Yangi yer maydoni"} onClose={() => setModalOpen(false)} size="lg">
-        <form onSubmit={handleSubmit((v: FormData) => saveMutation.mutateAsync(v))} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit((v) => saveMutation.mutateAsync(v as unknown as FormData))} className="flex flex-col gap-4">
           <Input label="Sarlavha *" error={errors.title?.message} {...register('title')} />
           <div className="grid grid-cols-2 gap-4">
             <Input label="Maydon (gektar)" type="number" step="any" {...register('area_hectares')} />

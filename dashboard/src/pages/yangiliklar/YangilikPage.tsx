@@ -61,7 +61,7 @@ export default function YangilikPage() {
 
   const { data, isLoading } = useQuery({ queryKey: ['yangiliklar', page], queryFn: () => fetchYangiliklar(page) })
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({ resolver: zodResolver(schema) })
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({ resolver: zodResolver(schema) as any })
 
   function openCreate() {
     setEditing(null)
@@ -153,7 +153,7 @@ export default function YangilikPage() {
       )}
 
       <Modal open={modalOpen} title={editing ? "Yangilikni tahrirlash" : "Yangi yangilik"} onClose={() => setModalOpen(false)} size="lg">
-        <form onSubmit={handleSubmit((v) => saveMutation.mutateAsync(v))} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit((v) => saveMutation.mutateAsync(v as unknown as FormData))} className="flex flex-col gap-4">
           <Input label="Sarlavha *" error={errors.title?.message} {...register('title')} />
           <Select label="Kategoriya" options={CATEGORIES} {...register('category')} />
           <Input label="Muqova rasm URL" {...register('cover_image_url')} />

@@ -57,8 +57,10 @@ class _KontaktlarTab extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                   color: kColorWhite,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: kColorStone, width: 0.5),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: const [
+                    BoxShadow(color: Color(0x0C000000), blurRadius: 10, offset: Offset(0, 3)),
+                  ],
                 ),
                 child: ListTile(
                   leading: Icon(c.icon, color: kColorPrimary, size: 20),

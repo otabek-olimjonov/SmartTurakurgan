@@ -88,7 +88,7 @@ export default function RahbariyatPage() {
 
   function openCreate() {
     setEditing(null)
-    reset({ category: 'rahbariyat', sort_order: 0, is_published: true })
+    reset({ category: 'hokim', sort_order: 0, is_published: true })
     setModalOpen(true)
   }
 

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 const kColorPrimary = Color(0xFF1D9E75);
 const kColorGold = Color(0xFFC8A96E);
 const kColorInk = Color(0xFF0A0A0A);
-const kColorCream = Color(0xFFF7F6F3);
+const kColorCream = Color(0xFFF2F2F7);
 const kColorStone = Color(0xFFE8E6E1);
 const kColorTextMuted = Color(0xFF888780);
 const kColorSuccess = Color(0xFF1D9E75);

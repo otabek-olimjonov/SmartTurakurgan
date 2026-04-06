@@ -165,7 +165,6 @@ class _PlaceMiniCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: kColorWhite,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: kColorStone, width: 0.5),
         boxShadow: [
           BoxShadow(
             color: kColorInk.withValues(alpha: 0.08),
@@ -194,10 +193,10 @@ class _PlaceMiniCard extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: kColorPrimary.withValues(alpha: 0.08),
+                  color: kColorPrimary,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.phone_outlined, color: kColorPrimary, size: 18),
+                child: const Icon(Icons.phone_outlined, color: Colors.white, size: 18),
               ),
             ),
           const SizedBox(width: 8),

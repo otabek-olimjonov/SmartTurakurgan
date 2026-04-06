@@ -286,8 +286,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             Container(
               decoration: BoxDecoration(
                 color: kColorWhite,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: kColorStone, width: 0.5),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: const [
+                  BoxShadow(color: Color(0x0C000000), blurRadius: 10, offset: Offset(0, 3)),
+                ],
               ),
               padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
               child: Column(
@@ -360,8 +362,10 @@ class _SettingsTile extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: kColorWhite,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: kColorStone, width: 0.5),
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: const [
+          BoxShadow(color: Color(0x0C000000), blurRadius: 10, offset: Offset(0, 3)),
+        ],
       ),
       child: ListTile(
         leading: Icon(icon, color: kColorPrimary, size: 20),

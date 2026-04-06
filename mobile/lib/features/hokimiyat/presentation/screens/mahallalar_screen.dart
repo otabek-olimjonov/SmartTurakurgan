@@ -34,18 +34,20 @@ class MahallalarScreen extends ConsumerWidget {
               return Container(
                 decoration: BoxDecoration(
                   color: kColorWhite,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: kColorStone, width: 0.5),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: const [
+                    BoxShadow(color: Color(0x0C000000), blurRadius: 10, offset: Offset(0, 3)),
+                  ],
                 ),
                 child: ListTile(
                   leading: Container(
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: kColorPrimary.withValues(alpha: 0.08),
+                      color: const Color(0xFFFF6B6B).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.home_outlined, color: kColorPrimary, size: 20),
+                    child: const Icon(Icons.home_outlined, color: Color(0xFFFF6B6B), size: 20),
                   ),
                   title: Text(m.localizedName(lang),
                       style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),

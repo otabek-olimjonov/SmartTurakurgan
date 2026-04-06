@@ -35,8 +35,10 @@ class PlaceCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: kColorWhite,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: kColorStone, width: 0.5),
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: const [
+            BoxShadow(color: Color(0x0C000000), blurRadius: 10, offset: Offset(0, 3)),
+          ],
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -164,7 +166,7 @@ class _ActionButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          border: Border.all(color: kColorStone, width: 0.5),
+          color: kColorPrimary.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(

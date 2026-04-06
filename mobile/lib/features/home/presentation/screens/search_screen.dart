@@ -123,6 +123,15 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
+  Color _colorFor(String type) {
+    switch (type) {
+      case 'rahbariyat': return const Color(0xFFFF9500);
+      case 'mahalla': return const Color(0xFFFF6B6B);
+      case 'news': return kColorPrimary;
+      default: return const Color(0xFF007AFF);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -177,18 +186,20 @@ class _SearchScreenState extends State<SearchScreen> {
                     return Container(
                       decoration: BoxDecoration(
                         color: kColorWhite,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: kColorStone, width: 0.5),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: const [
+                          BoxShadow(color: Color(0x0C000000), blurRadius: 10, offset: Offset(0, 3)),
+                        ],
                       ),
                       child: ListTile(
                         leading: Container(
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: kColorPrimary.withValues(alpha: 0.08),
+                            color: _colorFor(r.type).withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: Icon(_iconFor(r.type), color: kColorPrimary, size: 20),
+                          child: Icon(_iconFor(r.type), color: _colorFor(r.type), size: 20),
                         ),
                         title: Text(r.name,
                             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: kColorInk),

@@ -22,7 +22,7 @@ class PlaceDetailScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      backgroundColor: kColorCream,
+      backgroundColor: const Color(0xFFF2F2F7),
       body: placeAsync.when(
         loading: () => const Center(child: CircularProgressIndicator(color: kColorPrimary)),
         error: (e, _) => ErrorView(message: e.toString()),
@@ -36,7 +36,7 @@ class PlaceDetailScreen extends ConsumerWidget {
                 pinned: true,
                 leading: const BackButton(),
                 title: Text(place.localizedName(lang),
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                 backgroundColor: Colors.white,
                 foregroundColor: kColorInk,
                 elevation: 0.5,

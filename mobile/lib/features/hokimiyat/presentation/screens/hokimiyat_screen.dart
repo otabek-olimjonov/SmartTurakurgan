@@ -10,13 +10,13 @@ class HokimiyatScreen extends StatelessWidget {
   const HokimiyatScreen({super.key});
 
   List<_MenuItem> _buildItems(AppLocalizations l10n) => [
-    _MenuItem(l10n.tumanAbout, Icons.landscape_outlined, '/hokimiyat/tuman'),
-    _MenuItem(l10n.hokimiyatAbout, Icons.info_outline, '/hokimiyat/about'),
-    _MenuItem(l10n.rahbariyat, Icons.people_outline, '/hokimiyat/rahbariyat'),
-    _MenuItem(l10n.apparat, Icons.supervised_user_circle_outlined, '/hokimiyat/apparat'),
-    _MenuItem(l10n.kengash, Icons.account_balance_outlined, '/hokimiyat/kengash'),
-    _MenuItem(l10n.mahallalar, Icons.home_work_outlined, '/hokimiyat/mahallalar'),
-    _MenuItem(l10n.yerMaydon, Icons.terrain_outlined, '/hokimiyat/yer'),
+    _MenuItem(l10n.tumanAbout, Icons.landscape_rounded, '/hokimiyat/tuman', const Color(0xFF5856D6)),
+    _MenuItem(l10n.hokimiyatAbout, Icons.info_rounded, '/hokimiyat/about', const Color(0xFF30B0C7)),
+    _MenuItem(l10n.rahbariyat, Icons.people_rounded, '/hokimiyat/rahbariyat', const Color(0xFFFF9500)),
+    _MenuItem(l10n.apparat, Icons.supervised_user_circle_rounded, '/hokimiyat/apparat', const Color(0xFF34C759)),
+    _MenuItem(l10n.kengash, Icons.account_balance_rounded, '/hokimiyat/kengash', const Color(0xFF007AFF)),
+    _MenuItem(l10n.mahallalar, Icons.home_work_rounded, '/hokimiyat/mahallalar', const Color(0xFFFF6B6B)),
+    _MenuItem(l10n.yerMaydon, Icons.terrain_rounded, '/hokimiyat/yer', const Color(0xFFAF52DE)),
   ];
 
   @override
@@ -49,20 +49,22 @@ class _MenuTile extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: kColorWhite,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: kColorStone, width: 0.5),
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: const [
+          BoxShadow(color: Color(0x0C000000), blurRadius: 10, offset: Offset(0, 3)),
+        ],
       ),
       child: ListTile(
         leading: Container(
-          width: 40,
-          height: 40,
+          width: 44,
+          height: 44,
           decoration: BoxDecoration(
-            color: kColorPrimary.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(10),
+            color: item.color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(item.icon, color: kColorPrimary, size: 20),
+          child: Icon(item.icon, color: item.color, size: 22),
         ),
-        title: Text(item.label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+        title: Text(item.label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: kColorInk)),
         trailing: const Icon(Icons.chevron_right, color: kColorTextMuted, size: 20),
         onTap: () => _navigate(context),
       ),
@@ -99,5 +101,6 @@ class _MenuItem {
   final String label;
   final IconData icon;
   final String route;
-  const _MenuItem(this.label, this.icon, this.route);
+  final Color color;
+  const _MenuItem(this.label, this.icon, this.route, this.color);
 }

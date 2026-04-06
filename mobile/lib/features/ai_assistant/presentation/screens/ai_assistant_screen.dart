@@ -198,7 +198,9 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                               decoration: BoxDecoration(
                                 color: kColorWhite,
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: kColorStone, width: 0.5),
+                                boxShadow: const [
+                                  BoxShadow(color: Color(0x0C000000), blurRadius: 10, offset: Offset(0, 3)),
+                                ],
                               ),
                               child: Text(q,
                                   style: const TextStyle(fontSize: 14, color: kColorInk)),
@@ -298,7 +300,9 @@ class _ChatBubble extends StatelessWidget {
         decoration: BoxDecoration(
           color: isUser ? kColorPrimary : kColorWhite,
           borderRadius: BorderRadius.circular(12),
-          border: isUser ? null : Border.all(color: kColorStone, width: 0.5),
+          boxShadow: isUser ? null : [
+            const BoxShadow(color: Color(0x0C000000), blurRadius: 10, offset: Offset(0, 3)),
+          ],
         ),
         child: Text(
           message.content,

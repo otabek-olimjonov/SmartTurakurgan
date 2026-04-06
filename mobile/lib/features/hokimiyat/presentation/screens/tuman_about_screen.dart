@@ -22,8 +22,10 @@ class TumanAboutScreen extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: kColorWhite,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: kColorStone, width: 0.5),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: const [
+                  BoxShadow(color: Color(0x0C000000), blurRadius: 10, offset: Offset(0, 3)),
+                ],
               ),
               child: Row(
                 children: [
@@ -31,10 +33,10 @@ class TumanAboutScreen extends StatelessWidget {
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: kColorPrimary.withValues(alpha: 0.08),
+                      color: const Color(0xFF5856D6).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(Icons.map_outlined, color: kColorPrimary, size: 28),
+                    child: const Icon(Icons.map_outlined, color: Color(0xFF5856D6), size: 28),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -121,8 +123,10 @@ class _StatCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: kColorWhite,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: kColorStone, width: 0.5),
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: const [
+          BoxShadow(color: Color(0x0C000000), blurRadius: 10, offset: Offset(0, 3)),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,8 +156,10 @@ class _TextCard extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: kColorWhite,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: kColorStone, width: 0.5),
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: const [
+          BoxShadow(color: Color(0x0C000000), blurRadius: 10, offset: Offset(0, 3)),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

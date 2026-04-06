@@ -26,8 +26,10 @@ class NewsCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: kColorWhite,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: kColorStone, width: 0.5),
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: const [
+            BoxShadow(color: Color(0x0C000000), blurRadius: 10, offset: Offset(0, 3)),
+          ],
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -65,14 +67,14 @@ class NewsCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                         decoration: BoxDecoration(
-                          color: kColorPrimary.withValues(alpha: 0.08),
+                          color: kColorPrimary,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
                           category,
                           style: const TextStyle(
                             fontSize: 10,
-                            color: kColorPrimary,
+                            color: Colors.white,
                             fontWeight: FontWeight.w500,
                           ),
                         ),

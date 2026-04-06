@@ -56,7 +56,7 @@ class NewsDetailScreen extends ConsumerWidget {
     final newsAsync = ref.watch(yangilikByIdProvider(newsId));
     final lang = localeKey(ref.watch(localeProvider));
     return Scaffold(
-      backgroundColor: kColorCream,
+      backgroundColor: const Color(0xFFF2F2F7),
       body: newsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator(color: kColorPrimary)),
         error: (e, _) => ErrorView(message: e.toString()),
@@ -90,11 +90,11 @@ class NewsDetailScreen extends ConsumerWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: kColorPrimary.withValues(alpha: 0.08),
+                              color: kColorPrimary,
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(news.category,
-                                style: const TextStyle(fontSize: 11, color: kColorPrimary, fontWeight: FontWeight.w500)),
+                                style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w500)),
                           ),
                           const SizedBox(height: 12),
                           Text(news.localizedTitle(lang),

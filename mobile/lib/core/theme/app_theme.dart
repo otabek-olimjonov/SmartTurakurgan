@@ -18,7 +18,7 @@ ThemeData buildAppTheme() {
       titleTextStyle: TextStyle(
         color: kColorInk,
         fontSize: 17,
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w700,
       ),
     ),
     cardTheme: CardThemeData(
@@ -26,14 +26,23 @@ ThemeData buildAppTheme() {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: kColorStone, width: 0.5),
       ),
       margin: EdgeInsets.zero,
+      shadowColor: Colors.transparent,
     ),
     dividerTheme: const DividerThemeData(
       color: kColorStone,
       thickness: 0.5,
       space: 0,
+    ),
+    tabBarTheme: const TabBarThemeData(
+      labelColor: kColorPrimary,
+      unselectedLabelColor: kColorTextMuted,
+      indicatorColor: kColorPrimary,
+      indicatorSize: TabBarIndicatorSize.label,
+      labelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+      unselectedLabelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w400),
+      dividerColor: kColorStone,
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(

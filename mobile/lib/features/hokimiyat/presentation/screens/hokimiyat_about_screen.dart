@@ -21,8 +21,10 @@ class HokimiyatAboutScreen extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: kColorWhite,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: kColorStone, width: 0.5),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: const [
+                  BoxShadow(color: Color(0x0C000000), blurRadius: 10, offset: Offset(0, 3)),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -33,10 +35,10 @@ class HokimiyatAboutScreen extends StatelessWidget {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color: kColorPrimary.withValues(alpha: 0.08),
+                          color: const Color(0xFF30B0C7).withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(Icons.account_balance, color: kColorPrimary, size: 24),
+                        child: const Icon(Icons.account_balance, color: Color(0xFF30B0C7), size: 24),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -86,8 +88,10 @@ class HokimiyatAboutScreen extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: kColorWhite,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: kColorStone, width: 0.5),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: const [
+                  BoxShadow(color: Color(0x0C000000), blurRadius: 10, offset: Offset(0, 3)),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

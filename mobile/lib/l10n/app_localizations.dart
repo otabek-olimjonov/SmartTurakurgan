@@ -455,6 +455,12 @@ abstract class AppLocalizations {
   /// **'Chiqish'**
   String get logout;
 
+  /// No description provided for @editProfile.
+  ///
+  /// In uz, this message translates to:
+  /// **'Profilni tahrirlash'**
+  String get editProfile;
+
   /// No description provided for @notLoggedIn.
   ///
   /// In uz, this message translates to:

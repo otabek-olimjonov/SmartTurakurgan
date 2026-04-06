@@ -49,6 +49,10 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Profil rasmini yuklash uchun galereya ruxsati kerak</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Profil rasmi olish uchun kamera ruxsati kerak</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

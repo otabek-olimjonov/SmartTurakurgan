@@ -14,8 +14,9 @@ class LocalDatabase {
     final path = join(dbPath, 'smart_turakurgan.db');
     return openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -107,6 +108,7 @@ class LocalDatabase {
         id TEXT PRIMARY KEY,
         place_id TEXT NOT NULL,
         image_url TEXT NOT NULL,
+        is_main INTEGER DEFAULT 0,
         sort_order INTEGER DEFAULT 0,
         updated_at TEXT NOT NULL
       )
@@ -155,5 +157,11 @@ class LocalDatabase {
     await db.execute('CREATE INDEX IF NOT EXISTS idx_yangiliklar_published ON yangiliklar(published_at)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_mahalla_xodimlari_mahalla ON mahalla_xodimlari(mahalla_id)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_place_images_place ON place_images(place_id)');
+  }
+
+  static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE place_images ADD COLUMN is_main INTEGER DEFAULT 0');
+    }
   }
 }

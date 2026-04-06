@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, UserRound } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
@@ -11,6 +11,7 @@ import Textarea from '../../components/ui/Textarea'
 import Select from '../../components/ui/Select'
 import Modal from '../../components/ui/Modal'
 import Pagination from '../../components/ui/Pagination'
+import SingleImageUploader from '../../components/ui/SingleImageUploader'
 
 const PAGE_SIZE = 20
 
@@ -78,8 +79,12 @@ export default function RahbariyatPage() {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({ resolver: zodResolver(schema) as any })
+
+  const photoUrl = watch('photo_url')
 
   function openCreate() {
     setEditing(null)
@@ -161,6 +166,7 @@ export default function RahbariyatPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[#E8E6E1] bg-[#F7F6F3]">
+                <th className="px-4 py-2.5 w-14" />
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-[#888780]">Ism-familiya</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-[#888780]">Lavozim</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-[#888780]">Kategoriya</th>
@@ -171,6 +177,15 @@ export default function RahbariyatPage() {
             <tbody className="divide-y divide-[#E8E6E1]">
               {data.data.map((p) => (
                 <tr key={p.id} className="hover:bg-[#F7F6F3] transition-colors">
+                  <td className="px-4 py-2.5">
+                    {p.photo_url ? (
+                      <img src={p.photo_url} alt="" className="w-10 h-10 rounded-full object-cover border border-[#E8E6E1]" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-[#F7F6F3] border border-[#E8E6E1] flex items-center justify-center">
+                        <UserRound size={16} className="text-[#E8E6E1]" />
+                      </div>
+                    )}
+                  </td>
                   <td className="px-4 py-3 font-medium text-[#0A0A0A]">{p.full_name}</td>
                   <td className="px-4 py-3 text-[#888780]">{p.position}</td>
                   <td className="px-4 py-3 text-[#888780] capitalize">{p.category}</td>
@@ -224,7 +239,13 @@ export default function RahbariyatPage() {
             <Input label="Telefon" {...register('phone')} />
             <Input label="Qabul kunlari" {...register('reception_days')} />
           </div>
-          <Input label="Rasm URL" {...register('photo_url')} />
+          <SingleImageUploader
+            value={photoUrl || null}
+            onChange={url => setValue('photo_url', url ?? '', { shouldValidate: true })}
+            folder="rahbariyat"
+            label="Rasm"
+            disabled={isSubmitting}
+          />
           <Textarea label="Biografiya" rows={3} {...register('biography')} />
           <div className="grid grid-cols-2 gap-4">
             <Input label="Tartib raqami" type="number" {...register('sort_order')} />

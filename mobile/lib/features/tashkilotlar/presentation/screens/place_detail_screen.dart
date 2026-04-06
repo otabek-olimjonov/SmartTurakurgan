@@ -115,7 +115,10 @@ class PlaceDetailScreen extends ConsumerWidget {
                                 initialZoom: 15,
                               ),
                               children: [
-                                TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'),
+                                TileLayer(
+                                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                  userAgentPackageName: 'uz.turakurgan.smart_turakurgan',
+                                ),
                                 MarkerLayer(markers: [
                                   Marker(
                                     point: LatLng(place.locationLat!, place.locationLng!),

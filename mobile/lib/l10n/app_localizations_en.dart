@@ -188,6 +188,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logout => 'Sign out';
 
   @override
+  String get editProfile => 'Edit profile';
+
+  @override
   String get notLoggedIn => 'Not signed in';
 
   @override

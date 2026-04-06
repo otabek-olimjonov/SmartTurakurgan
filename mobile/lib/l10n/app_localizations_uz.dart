@@ -188,6 +188,9 @@ class AppLocalizationsUz extends AppLocalizations {
   String get logout => 'Chiqish';
 
   @override
+  String get editProfile => 'Profilni tahrirlash';
+
+  @override
   String get notLoggedIn => 'Kirish amalga oshirilmagan';
 
   @override
@@ -561,6 +564,9 @@ class AppLocalizationsUzCyrl extends AppLocalizationsUz {
 
   @override
   String get logout => 'Чиқиш';
+
+  @override
+  String get editProfile => 'Профилни таҳрирлаш';
 
   @override
   String get notLoggedIn => 'Кириш амалга оширилмаган';

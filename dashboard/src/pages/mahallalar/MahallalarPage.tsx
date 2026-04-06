@@ -3,13 +3,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Building2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import Textarea from '../../components/ui/Textarea'
 import Modal from '../../components/ui/Modal'
 import Pagination from '../../components/ui/Pagination'
+import SingleImageUploader from '../../components/ui/SingleImageUploader'
 
 const PAGE_SIZE = 20
 
@@ -59,8 +60,12 @@ export default function MahallalarPage() {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<MahallForm>({ resolver: zodResolver(mahallSchema) as any })
+
+  const buildingPhotoUrl = watch('building_photo_url')
 
   function openCreate() {
     setEditing(null)
@@ -135,6 +140,7 @@ export default function MahallalarPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[#E8E6E1] bg-[#F7F6F3]">
+                <th className="px-4 py-2.5 w-14" />
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-[#888780]">Nomi</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-[#888780]">Joylashuv</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-[#888780]">Holat</th>
@@ -144,6 +150,15 @@ export default function MahallalarPage() {
             <tbody className="divide-y divide-[#E8E6E1]">
               {data.data.map((m) => (
                 <tr key={m.id} className="hover:bg-[#F7F6F3] transition-colors">
+                  <td className="px-4 py-2.5">
+                    {m.building_photo_url ? (
+                      <img src={m.building_photo_url} alt="" className="w-10 h-10 rounded-lg object-cover border border-[#E8E6E1]" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-[#F7F6F3] border border-[#E8E6E1] flex items-center justify-center">
+                        <Building2 size={14} className="text-[#E8E6E1]" />
+                      </div>
+                    )}
+                  </td>
                   <td className="px-4 py-3 font-medium text-[#0A0A0A]">{m.name}</td>
                   <td className="px-4 py-3 text-[#888780] text-xs">
                     {m.location_lat && m.location_lng
@@ -189,7 +204,14 @@ export default function MahallalarPage() {
             <Input label="Kenglik (lat)" type="number" step="any" {...register('location_lat')} />
             <Input label="Uzunlik (lng)" type="number" step="any" {...register('location_lng')} />
           </div>
-          <Input label="Bino rasmi URL" {...register('building_photo_url')} />
+          <SingleImageUploader
+            value={buildingPhotoUrl || null}
+            onChange={url => setValue('building_photo_url', url ?? '', { shouldValidate: false })}
+            folder="mahallalar"
+            label="Bino rasmi"
+            shape="square"
+            disabled={isSubmitting}
+          />
           <div className="flex items-center gap-2">
             <input type="checkbox" id="is_published" {...register('is_published')} />
             <label htmlFor="is_published" className="text-sm">Chop etilgan</label>

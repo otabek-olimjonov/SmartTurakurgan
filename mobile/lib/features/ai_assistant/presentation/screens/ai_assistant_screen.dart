@@ -67,8 +67,19 @@ class AiMessagesNotifier extends StateNotifier<List<AiMessage>> {
         'created_at': DateTime.now().toIso8601String(),
       });
       await _trimHistory(db);
-    } catch (_) {
-      const errMsg = AiMessage(role: 'model', content: 'Xatolik yuz berdi. Internet aloqasini tekshiring.');
+    } catch (e) {
+      String errText = 'Xatolik yuz berdi. Internet aloqasini tekshiring.';
+      if (e is DioException) {
+        final status = e.response?.statusCode;
+        if (status == 401 || status == 403) {
+          errText = 'Autentifikatsiya xatosi. Iltimos, qayta kiring.';
+        } else if (status == 429) {
+          errText = 'AI xizmati hozirda band. Bir oz kutib, qayta urinib ko\'ring.';
+        } else if (status != null && status >= 500) {
+          errText = 'Server xatosi ($status). Birozdan keyin qayta urinib ko\'ring.';
+        }
+      }
+      final errMsg = AiMessage(role: 'model', content: errText);
       state = [...state, errMsg];
     }
   }

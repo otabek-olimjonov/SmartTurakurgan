@@ -23,9 +23,10 @@ serve(async (req: Request) => {
     const fullName = (body.full_name ?? '').toString().trim()
     const phoneNumber = (body.phone_number ?? '').toString().trim()
     const address = (body.address ?? '').toString().trim()
+    const photoUrl = (body.photo_url ?? '').toString().trim()
 
-    if (!fullName) {
-      return new Response(JSON.stringify({ error: 'full_name is required', field: 'full_name' }), {
+    if (body.full_name !== undefined && !fullName) {
+      return new Response(JSON.stringify({ error: 'full_name cannot be empty', field: 'full_name' }), {
         status: 422,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -47,6 +48,7 @@ serve(async (req: Request) => {
     if (fullName) updates.full_name = fullName
     if (phoneNumber) updates.phone_number = phoneNumber
     if (address) updates.address = address
+    if (photoUrl) updates.photo_url = photoUrl
 
     const { error } = await supabase
       .from('users')

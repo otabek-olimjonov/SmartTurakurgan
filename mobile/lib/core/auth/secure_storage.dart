@@ -5,6 +5,7 @@ const _userIdKey = 'user_id';
 const _roleKey = 'user_role';
 const _fullNameKey = 'user_full_name';
 const _phoneKey = 'user_phone';
+const _photoUrlKey = 'user_photo_url';
 
 class SecureStorage {
   static const _storage = FlutterSecureStorage(
@@ -44,6 +45,14 @@ class SecureStorage {
 
   static Future<String?> getPhone() async {
     return _storage.read(key: _phoneKey);
+  }
+
+  static Future<void> savePhotoUrl(String url) async {
+    await _storage.write(key: _photoUrlKey, value: url);
+  }
+
+  static Future<String?> getPhotoUrl() async {
+    return _storage.read(key: _photoUrlKey);
   }
 
   static Future<void> clear() async {

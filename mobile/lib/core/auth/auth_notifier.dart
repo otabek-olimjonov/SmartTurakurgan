@@ -12,6 +12,7 @@ class AuthState {
   final bool isNewUser;
   final String? fullName;
   final String? phoneNumber;
+  final String? photoUrl;
 
   const AuthState({
     this.status = AuthStatus.unknown,
@@ -20,6 +21,7 @@ class AuthState {
     this.isNewUser = false,
     this.fullName,
     this.phoneNumber,
+    this.photoUrl,
   });
 
   AuthState copyWith({
@@ -29,6 +31,7 @@ class AuthState {
     bool? isNewUser,
     String? fullName,
     String? phoneNumber,
+    String? photoUrl,
   }) {
     return AuthState(
       status: status ?? this.status,
@@ -37,6 +40,7 @@ class AuthState {
       isNewUser: isNewUser ?? this.isNewUser,
       fullName: fullName ?? this.fullName,
       phoneNumber: phoneNumber ?? this.phoneNumber,
+      photoUrl: photoUrl ?? this.photoUrl,
     );
   }
 }
@@ -57,12 +61,14 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     final role = await SecureStorage.getRole();
     final fullName = await SecureStorage.getFullName();
     final phoneNumber = await SecureStorage.getPhone();
+    final photoUrl = await SecureStorage.getPhotoUrl();
     return AuthState(
       status: AuthStatus.authenticated,
       userId: userId,
       role: role,
       fullName: fullName,
       phoneNumber: phoneNumber,
+      photoUrl: photoUrl,
     );
   }
 
@@ -123,6 +129,24 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   Future<void> signOut() async {
     await SecureStorage.clear();
     state = const AsyncData(AuthState(status: AuthStatus.unauthenticated));
+  }
+
+  Future<void> updateProfile({String? fullName, String? phoneNumber, String? photoUrl}) async {
+    final data = <String, dynamic>{};
+    if (fullName != null) data['full_name'] = fullName;
+    if (phoneNumber != null) data['phone_number'] = phoneNumber;
+    if (photoUrl != null) data['photo_url'] = photoUrl;
+    await _dio.put('/update-profile', data: data);
+    await SecureStorage.saveProfile(
+      fullName: fullName ?? state.value?.fullName ?? '',
+      phone: phoneNumber ?? state.value?.phoneNumber ?? '',
+    );
+    if (photoUrl != null) await SecureStorage.savePhotoUrl(photoUrl);
+    state = AsyncData(state.value!.copyWith(
+      fullName: fullName,
+      phoneNumber: phoneNumber,
+      photoUrl: photoUrl,
+    ));
   }
 }
 

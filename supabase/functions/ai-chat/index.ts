@@ -73,7 +73,7 @@ serve(async (req: Request) => {
       parts: [{ text: m.content }],
     }))
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${geminiApiKey}`
 
     const geminiResponse = await fetch(geminiUrl, {
       method: 'POST',
@@ -95,6 +95,9 @@ serve(async (req: Request) => {
     if (!geminiResponse.ok) {
       const errText = await geminiResponse.text()
       console.error('[ai-chat] Gemini API error:', geminiResponse.status, errText)
+      if (geminiResponse.status === 429) {
+        return jsonResponse({ error: 'AI service quota exceeded. Please try again later.' }, 429)
+      }
       return jsonResponse({ error: 'AI service error' }, 502)
     }
 

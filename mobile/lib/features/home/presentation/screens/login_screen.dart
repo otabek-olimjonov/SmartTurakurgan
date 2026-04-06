@@ -27,8 +27,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final result = await auth.initTelegramAuth(deviceId);
 
       final uri = Uri.parse(result.telegramUrl);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched) {
+        // Fallback: try without mode restriction (e.g. Telegram not installed)
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
       }
 
       setState(() { _loading = false; _polling = true; });

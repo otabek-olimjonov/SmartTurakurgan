@@ -21,7 +21,7 @@ class PlacesRepository {
         'place_images',
         where: 'place_id = ?',
         whereArgs: [place.id],
-        orderBy: 'sort_order ASC',
+        orderBy: 'is_main DESC, sort_order ASC',
       );
       place.imageUrls = imgRows.map((r) => r['image_url'] as String).toList();
     }
@@ -34,7 +34,7 @@ class PlacesRepository {
     final rows = await db.query('places', where: 'id = ?', whereArgs: [id]);
     if (rows.isEmpty) return null;
     final place = PlaceModel.fromMap(rows.first);
-    final imgRows = await db.query('place_images', where: 'place_id = ?', whereArgs: [id], orderBy: 'sort_order ASC');
+    final imgRows = await db.query('place_images', where: 'place_id = ?', whereArgs: [id], orderBy: 'is_main DESC, sort_order ASC');
     place.imageUrls = imgRows.map((r) => r['image_url'] as String).toList();
     return place;
   }

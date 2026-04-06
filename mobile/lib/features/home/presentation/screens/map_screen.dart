@@ -70,7 +70,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           allPlacesAsync.when(
             loading: () => FlutterMap(
               options: MapOptions(initialCenter: _turakurganCenter, initialZoom: 12),
-              children: [TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png')],
+              children: [TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'uz.turakurgan.smart_turakurgan',
+              )],
             ),
             error: (_, __) => Center(child: Text(l10n.mapLoadError)),
             data: (places) => FlutterMap(
@@ -80,7 +83,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 onTap: (_, __) => setState(() => _selectedPlace = null),
               ),
               children: [
-                TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'),
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'uz.turakurgan.smart_turakurgan',
+                ),
                 MarkerLayer(
                   markers: places
                       .where((p) => p.locationLat != null && p.locationLng != null)

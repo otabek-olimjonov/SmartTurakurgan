@@ -42,60 +42,89 @@ class PlaceCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (imageUrl != null)
-              CachedNetworkImage(
-                imageUrl: imageUrl!,
-                height: 160,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                placeholder: (_, __) => Container(height: 160, color: kColorStone),
-                errorWidget: (_, __, ___) => Container(
-                  height: 160,
-                  color: kColorStone,
-                  child: const Icon(Icons.image_outlined, color: kColorTextMuted),
-                ),
-              ),
+            // Cover image — always shown, 4:3 ratio like Airbnb
+            AspectRatio(
+              aspectRatio: 4 / 3,
+              child: imageUrl != null
+                  ? CachedNetworkImage(
+                      imageUrl: imageUrl!,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => Container(color: kColorStone),
+                      errorWidget: (_, __, ___) => _ImagePlaceholder(),
+                    )
+                  : _ImagePlaceholder(),
+            ),
             Padding(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: Text(name,
-                            style: const TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.w500, color: kColorInk)),
+                        child: Text(
+                          name,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: kColorInk,
+                            height: 1.3,
+                          ),
+                        ),
                       ),
                       if (rating > 0) ...[
-                        const Icon(Icons.star, size: 14, color: kColorGold),
-                        const SizedBox(width: 2),
-                        Text(rating.toStringAsFixed(1),
-                            style: const TextStyle(fontSize: 12, color: kColorTextMuted)),
+                        const SizedBox(width: 8),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.star_rounded, size: 14, color: kColorGold),
+                            const SizedBox(width: 2),
+                            Text(
+                              rating.toStringAsFixed(1),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: kColorInk,
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ],
                   ),
-                  if (description != null && description!.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Text(description!,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 13, color: kColorTextMuted, height: 1.5)),
+                  if (description != null && description!.isNotEmpty) ...[  
+                    const SizedBox(height: 5),
+                    Text(
+                      description!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: kColorTextMuted,
+                        height: 1.4,
+                      ),
+                    ),
                   ],
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
-                      if (phone != null)
-                        _ActionButton(
-                          icon: Icons.phone_outlined,
-                          label: callLabel,
-                          onTap: onCallTap,
+                      if (phone != null) ...[  
+                        Expanded(
+                          child: _ActionButton(
+                            icon: Icons.phone_outlined,
+                            label: callLabel,
+                            onTap: onCallTap,
+                          ),
                         ),
-                      if (phone != null) const SizedBox(width: 8),
-                      _ActionButton(
-                        icon: Icons.map_outlined,
-                        label: mapLabel,
-                        onTap: onMapTap,
+                        const SizedBox(width: 8),
+                      ],
+                      Expanded(
+                        child: _ActionButton(
+                          icon: Icons.map_outlined,
+                          label: mapLabel,
+                          onTap: onMapTap,
+                        ),
                       ),
                     ],
                   ),
@@ -104,6 +133,18 @@ class PlaceCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ImagePlaceholder extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: kColorStone,
+      child: const Center(
+        child: Icon(Icons.image_outlined, size: 36, color: kColorTextMuted),
       ),
     );
   }
@@ -121,13 +162,13 @@ class _ActionButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           border: Border.all(color: kColorStone, width: 0.5),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 14, color: kColorPrimary),
             const SizedBox(width: 4),

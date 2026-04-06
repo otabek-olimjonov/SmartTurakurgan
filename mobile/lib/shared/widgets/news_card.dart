@@ -30,51 +30,75 @@ class NewsCard extends StatelessWidget {
           border: Border.all(color: kColorStone, width: 0.5),
         ),
         clipBehavior: Clip.antiAlias,
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (coverImageUrl != null)
-              CachedNetworkImage(
-                imageUrl: coverImageUrl!,
-                width: 90,
-                height: 90,
-                fit: BoxFit.cover,
-                placeholder: (_, __) => Container(width: 90, height: 90, color: kColorStone),
-                errorWidget: (_, __, ___) => Container(
-                  width: 90,
-                  height: 90,
-                  color: kColorStone,
-                  child: const Icon(Icons.image_outlined, color: kColorTextMuted),
-                ),
-              ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: kColorPrimary.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(4),
+            // Full-width cover image — 16:9
+            AspectRatio(
+              aspectRatio: 16 / 9,
+              child: coverImageUrl != null
+                  ? CachedNetworkImage(
+                      imageUrl: coverImageUrl!,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => Container(color: kColorStone),
+                      errorWidget: (_, __, ___) => Container(
+                        color: kColorStone,
+                        child: const Center(
+                          child: Icon(Icons.article_outlined, size: 36, color: kColorTextMuted),
+                        ),
                       ),
-                      child: Text(category,
-                          style: const TextStyle(fontSize: 10, color: kColorPrimary, fontWeight: FontWeight.w500)),
+                    )
+                  : Container(
+                      color: kColorStone,
+                      child: const Center(
+                        child: Icon(Icons.article_outlined, size: 36, color: kColorTextMuted),
+                      ),
                     ),
-                    const SizedBox(height: 6),
-                    Text(title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: kColorInk, height: 1.4)),
-                    if (publishedAt != null) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        _formatTime(publishedAt!),
-                        style: const TextStyle(fontSize: 11, color: kColorTextMuted),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: kColorPrimary.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          category,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: kColorPrimary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ),
+                      if (publishedAt != null) ...[
+                        const Spacer(),
+                        Text(
+                          _formatTime(publishedAt!),
+                          style: const TextStyle(fontSize: 11, color: kColorTextMuted),
+                        ),
+                      ],
                     ],
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: kColorInk,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

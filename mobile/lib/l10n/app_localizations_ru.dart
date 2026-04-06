@@ -188,6 +188,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get logout => 'Выйти';
 
   @override
+  String get editProfile => 'Редактировать профиль';
+
+  @override
   String get notLoggedIn => 'Вход не выполнен';
 
   @override

@@ -4,19 +4,21 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:dio/dio.dart';
 import 'package:smart_turakurgan/core/auth/auth_notifier.dart';
 import 'package:smart_turakurgan/core/theme/colors.dart';
+import 'package:smart_turakurgan/l10n/app_localizations.dart';
 
 class BoglanishScreen extends StatelessWidget {
   const BoglanishScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text("Bog'lanish"),
-          bottom: const TabBar(
-            tabs: [Tab(text: 'Kontaktlar'), Tab(text: 'Murojaat')],
+          title: Text(l10n.boglanish),
+          bottom: TabBar(
+            tabs: [Tab(text: l10n.kontaktlar), Tab(text: l10n.murojaat)],
           ),
         ),
         body: const TabBarView(
@@ -27,23 +29,30 @@ class BoglanishScreen extends StatelessWidget {
   }
 }
 
+class _Contact {
+  final IconData icon;
+  final String label;
+  final String value;
+  const _Contact(this.icon, this.label, this.value);
+}
+
 class _KontaktlarTab extends StatelessWidget {
   const _KontaktlarTab();
 
-  static const _contacts = [
-    _Contact(Icons.phone, 'Qabul xonasi', '+998 73 394 00 00'),
-    _Contact(Icons.phone, 'Navbatchi', '+998 73 394 00 01'),
-    _Contact(Icons.email, 'E-mail', 'hokimiyat@turakurgan.uz'),
-    _Contact(Icons.location_on, 'Manzil', 'Turakurgan tumani, Mustaqillik ko\'chasi 1'),
-    _Contact(Icons.access_time, 'Ish vaqti', 'Dushanba–Juma: 09:00–18:00'),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final contacts = [
+      _Contact(Icons.phone, l10n.receptionOffice, '+998 73 394 00 00'),
+      _Contact(Icons.phone, l10n.duty, '+998 73 394 00 01'),
+      _Contact(Icons.email, l10n.emailLabel, 'hokimiyat@turakurgan.uz'),
+      _Contact(Icons.location_on, l10n.address, "Turakurgan tumani, Mustaqillik ko'chasi 1"),
+      _Contact(Icons.access_time, l10n.workHours, ''),
+    ];
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        ..._contacts.map((c) => Padding(
+        ...contacts.map((c) => Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Container(
                 decoration: BoxDecoration(
@@ -53,12 +62,24 @@ class _KontaktlarTab extends StatelessWidget {
                 ),
                 child: ListTile(
                   leading: Icon(c.icon, color: kColorPrimary, size: 20),
-                  title: Text(c.label,
-                      style: const TextStyle(fontSize: 12, color: kColorTextMuted)),
-                  subtitle: Text(c.value,
-                      style: const TextStyle(fontSize: 14, color: kColorInk, fontWeight: FontWeight.w500)),
+                  title: c.value.isNotEmpty
+                      ? Text(c.label,
+                          style: const TextStyle(fontSize: 12, color: kColorTextMuted))
+                      : null,
+                  subtitle: c.value.isNotEmpty
+                      ? Text(c.value,
+                          style: const TextStyle(
+                              fontSize: 14,
+                              color: kColorInk,
+                              fontWeight: FontWeight.w500))
+                      : Text(c.label,
+                          style: const TextStyle(
+                              fontSize: 14,
+                              color: kColorInk,
+                              fontWeight: FontWeight.w500)),
                   onTap: c.icon == Icons.phone
-                      ? () => launchUrl(Uri.parse('tel:${c.value.replaceAll(' ', '')}'))
+                      ? () => launchUrl(
+                          Uri.parse('tel:${c.value.replaceAll(' ', '')}'))
                       : c.icon == Icons.email
                           ? () => launchUrl(Uri.parse('mailto:${c.value}'))
                           : null,
@@ -67,20 +88,14 @@ class _KontaktlarTab extends StatelessWidget {
             )),
         const SizedBox(height: 16),
         OutlinedButton.icon(
-          onPressed: () => launchUrl(Uri.parse('https://t.me/SmartTurakurganBot')),
+          onPressed: () =>
+              launchUrl(Uri.parse('https://t.me/SmartTurakurganBot')),
           icon: const Icon(Icons.send, size: 16),
-          label: const Text('Telegram kanalimiz'),
+          label: Text(l10n.telegramChannel),
         ),
       ],
     );
   }
-}
-
-class _Contact {
-  final IconData icon;
-  final String label;
-  final String value;
-  const _Contact(this.icon, this.label, this.value);
 }
 
 class _MurojaatTab extends ConsumerStatefulWidget {
@@ -123,9 +138,10 @@ class _MurojaatTabState extends ConsumerState<_MurojaatTab> {
       if (mounted) setState(() { _sending = false; _sent = true; });
     } on DioException catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         final msg = e.response?.statusCode == 429
-            ? 'Kunlik limit (5) oshib ketdi'
-            : 'Xatolik yuz berdi. Qayta urinib ko\'ring.';
+            ? l10n.murojaatRateLimit
+            : l10n.errorOccurred;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
         setState(() => _sending = false);
       }
@@ -134,6 +150,8 @@ class _MurojaatTabState extends ConsumerState<_MurojaatTab> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     if (_sent) {
       return Center(
         child: Padding(
@@ -151,16 +169,20 @@ class _MurojaatTabState extends ConsumerState<_MurojaatTab> {
                 child: const Icon(Icons.check, color: kColorSuccess, size: 32),
               ),
               const SizedBox(height: 16),
-              const Text('Murojaatingiz qabul qilindi!',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: kColorInk),
+              Text(l10n.murojaatSuccess,
+                  style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      color: kColorInk),
                   textAlign: TextAlign.center),
               const SizedBox(height: 8),
-              const Text('Tez orada siz bilan bog\'lanamiz.',
-                  style: TextStyle(fontSize: 14, color: kColorTextMuted)),
+              Text(l10n.murojaatConnectingSoon,
+                  style: const TextStyle(fontSize: 14, color: kColorTextMuted)),
               const SizedBox(height: 24),
               OutlinedButton(
-                onPressed: () => setState(() { _sent = false; _messageCtrl.clear(); }),
-                child: const Text('Yangi murojaat'),
+                onPressed: () =>
+                    setState(() { _sent = false; _messageCtrl.clear(); }),
+                child: Text(l10n.newMurojaat),
               ),
             ],
           ),
@@ -175,21 +197,28 @@ class _MurojaatTabState extends ConsumerState<_MurojaatTab> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildField(_nameCtrl, "To'liq ism", "Ali Karimov",
-                validator: (v) => v == null || v.trim().isEmpty ? 'Ismni kiriting' : null),
+            _buildField(_nameCtrl, l10n.fullName, l10n.enterName,
+                validator: (v) => v == null || v.trim().isEmpty
+                    ? l10n.enterName
+                    : null),
             const SizedBox(height: 12),
-            _buildField(_phoneCtrl, 'Telefon', '+998901234567',
+            _buildField(_phoneCtrl, l10n.phoneNumber, '+998901234567',
                 type: TextInputType.phone,
-                validator: (v) => v == null || v.trim().isEmpty ? 'Telefon kiriting' : null),
+                validator: (v) => v == null || v.trim().isEmpty
+                    ? l10n.enterPhone
+                    : null),
             const SizedBox(height: 12),
-            _buildField(_addressCtrl, 'Manzil', 'Turakurgan, Yangi hayot MFY',
-                validator: (v) => v == null || v.trim().isEmpty ? 'Manzil kiriting' : null),
+            _buildField(_addressCtrl, l10n.address, l10n.enterAddress,
+                validator: (v) => v == null || v.trim().isEmpty
+                    ? l10n.enterAddress
+                    : null),
             const SizedBox(height: 12),
-            _buildField(_messageCtrl, 'Murojaat matni', 'Muammo yoki savolingizni kiriting...',
+            _buildField(
+                _messageCtrl, l10n.murojaatMessage, l10n.enterMessage,
                 maxLines: 5,
                 validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Murojaat matnini kiriting';
-                  if (v.trim().length < 10) return 'Kamida 10 belgi';
+                  if (v == null || v.trim().isEmpty) return l10n.enterMessage;
+                  if (v.trim().length < 10) return l10n.minChars;
                   return null;
                 }),
             const SizedBox(height: 20),
@@ -198,9 +227,12 @@ class _MurojaatTabState extends ConsumerState<_MurojaatTab> {
               child: ElevatedButton(
                 onPressed: _sending ? null : _submit,
                 child: _sending
-                    ? const SizedBox(height: 20, width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: kColorWhite))
-                    : const Text('Yuborish'),
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: kColorWhite))
+                    : Text(l10n.murojaatSubmit),
               ),
             ),
           ],
@@ -220,7 +252,11 @@ class _MurojaatTabState extends ConsumerState<_MurojaatTab> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: kColorInk)),
+        Text(label,
+            style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: kColorInk)),
         const SizedBox(height: 6),
         TextFormField(
           controller: ctrl,

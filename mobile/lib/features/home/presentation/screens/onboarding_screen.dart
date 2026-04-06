@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dio/dio.dart';
 import 'package:smart_turakurgan/core/auth/auth_notifier.dart';
-import 'package:smart_turakurgan/core/auth/secure_storage.dart';
 import 'package:smart_turakurgan/core/theme/colors.dart';
+import 'package:smart_turakurgan/l10n/app_localizations.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -14,15 +13,11 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameCtrl = TextEditingController();
-  final _phoneCtrl = TextEditingController();
   final _addressCtrl = TextEditingController();
   bool _saving = false;
 
   @override
   void dispose() {
-    _nameCtrl.dispose();
-    _phoneCtrl.dispose();
     _addressCtrl.dispose();
     super.dispose();
   }
@@ -34,16 +29,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     try {
       final dio = ref.read(dioProvider);
       await dio.put('/update-profile', data: {
-        'full_name': _nameCtrl.text.trim(),
-        'phone_number': _phoneCtrl.text.trim(),
         'address': _addressCtrl.text.trim(),
       });
       // Refresh auth state — isNewUser will become false
       ref.invalidate(authProvider);
     } catch (_) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Xatolik yuz berdi. Qayta urinib ko\'ring.')),
+          SnackBar(content: Text(l10n.errorOccurred)),
         );
       }
     } finally {
@@ -53,15 +47,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: kColorCream,
       appBar: AppBar(
-        title: const Text("Ma'lumotlaringizni kiriting"),
+        title: Text(l10n.onboardingTitle),
         automaticallyImplyLeading: false,
         actions: [
           TextButton(
             onPressed: () => ref.invalidate(authProvider),
-            child: const Text('O\'tkazib yuborish'),
+            child: Text(l10n.onboardingSkip),
           ),
         ],
       ),
@@ -72,37 +67,38 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Xizmatlardan to\'liq foydalanish uchun quyidagi ma\'lumotlarni kiriting.',
-                style: TextStyle(fontSize: 14, color: kColorTextMuted, height: 1.5),
+              // Info banner — name & phone already collected via Telegram bot
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: kColorPrimary.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: kColorPrimary.withValues(alpha: 0.18), width: 0.5),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.check_circle_outline, color: kColorPrimary, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        l10n.onboardingTelegramDone,
+                        style: const TextStyle(fontSize: 13, color: kColorPrimary, height: 1.4),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                l10n.onboardingSubtitle,
+                style: const TextStyle(fontSize: 14, color: kColorTextMuted, height: 1.5),
               ),
               const SizedBox(height: 24),
               _buildField(
-                controller: _nameCtrl,
-                label: "To'liq ism",
-                hint: 'Karimov Ali Vohidovich',
-                validator: (v) => v == null || v.trim().isEmpty ? 'Ismni kiriting' : null,
-              ),
-              const SizedBox(height: 14),
-              _buildField(
-                controller: _phoneCtrl,
-                label: 'Telefon raqami',
-                hint: '+998 90 123 45 67',
-                keyboardType: TextInputType.phone,
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Telefon raqamini kiriting';
-                  if (!RegExp(r'^\+998\d{9}$').hasMatch(v.replaceAll(' ', ''))) {
-                    return 'Format: +998901234567';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 14),
-              _buildField(
                 controller: _addressCtrl,
-                label: 'Manzil',
+                label: l10n.address,
                 hint: 'Turakurgan tumani, Yangi hayot MFY',
-                validator: (v) => v == null || v.trim().isEmpty ? 'Manzilni kiriting' : null,
+                validator: (v) => v == null || v.trim().isEmpty ? l10n.address : null,
               ),
               const SizedBox(height: 28),
               SizedBox(
@@ -115,7 +111,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2, color: kColorWhite),
                         )
-                      : const Text('Saqlash'),
+                      : Text(l10n.save),
                 ),
               ),
             ],

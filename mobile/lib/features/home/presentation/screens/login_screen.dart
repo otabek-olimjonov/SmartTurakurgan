@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:smart_turakurgan/core/auth/auth_notifier.dart';
 import 'package:smart_turakurgan/core/theme/colors.dart';
+import 'package:smart_turakurgan/l10n/app_localizations.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -78,14 +79,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const Text('Smart Turakurgan',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500, color: kColorInk)),
               const SizedBox(height: 6),
-              const Text('Barcha xizmatlar — bitta ilovada',
-                  style: TextStyle(fontSize: 14, color: kColorTextMuted)),
+              Text(AppLocalizations.of(context).appSlogan,
+                  style: const TextStyle(fontSize: 14, color: kColorTextMuted)),
               const Spacer(flex: 3),
               if (_polling) ...[
                 const CircularProgressIndicator(color: kColorPrimary),
                 const SizedBox(height: 16),
-                const Text('Telegram botda tasdiqlang...',
-                    style: TextStyle(fontSize: 15, color: kColorTextMuted)),
+                Text(AppLocalizations.of(context).loginWaiting,
+                    style: const TextStyle(fontSize: 15, color: kColorTextMuted)),
                 const SizedBox(height: 8),
                 TextButton(
                   onPressed: () => setState(() { _polling = false; }),
@@ -115,7 +116,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             child: CircularProgressIndicator(strokeWidth: 2, color: kColorWhite),
                           )
                         : const Icon(Icons.send, size: 18),
-                    label: const Text('Telegram orqali kirish'),
+                    label: Text(AppLocalizations.of(context).loginButton),
                   ),
                 ),
               ],

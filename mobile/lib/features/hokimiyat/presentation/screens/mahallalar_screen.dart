@@ -4,6 +4,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:smart_turakurgan/shared/widgets/person_card.dart';
 import 'package:smart_turakurgan/shared/widgets/loading_widgets.dart';
 import 'package:smart_turakurgan/core/theme/colors.dart';
+import 'package:smart_turakurgan/core/locale/locale_provider.dart';
+import 'package:smart_turakurgan/l10n/app_localizations.dart';
 import 'package:smart_turakurgan/features/hokimiyat/data/repositories/hokimiyat_repository.dart';
 
 class MahallalarScreen extends ConsumerWidget {
@@ -12,14 +14,17 @@ class MahallalarScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final listAsync = ref.watch(mahallalarProvider);
+    final locale = ref.watch(localeProvider);
+    final lang = localeKey(locale);
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Mahallalar')),
+      appBar: AppBar(title: Text(l10n.mahallalar)),
       backgroundColor: kColorCream,
       body: listAsync.when(
         loading: () => const LoadingCardList(),
         error: (e, _) => ErrorView(message: e.toString()),
         data: (list) {
-          if (list.isEmpty) return const EmptyView(message: "Mahallalar topilmadi");
+          if (list.isEmpty) return EmptyView(message: l10n.neighborhoodsNotFound);
           return ListView.separated(
             padding: const EdgeInsets.all(16),
             itemCount: list.length,
@@ -42,15 +47,18 @@ class MahallalarScreen extends ConsumerWidget {
                     ),
                     child: const Icon(Icons.home_outlined, color: kColorPrimary, size: 20),
                   ),
-                  title: Text(m.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                  subtitle: m.description != null
-                      ? Text(m.description!, maxLines: 1, overflow: TextOverflow.ellipsis,
+                  title: Text(m.localizedName(lang),
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                  subtitle: m.localizedDescription(lang) != null
+                      ? Text(m.localizedDescription(lang)!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(fontSize: 12, color: kColorTextMuted))
                       : null,
                   trailing: const Icon(Icons.chevron_right, color: kColorTextMuted, size: 20),
                   onTap: () => Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => _MahallalarDetailScreen(mahalla: m)),
+                    MaterialPageRoute(builder: (_) => _MahallalarDetailScreen(mahalla: m, lang: lang, l10n: l10n)),
                   ),
                 ),
               );
@@ -64,7 +72,9 @@ class MahallalarScreen extends ConsumerWidget {
 
 class _MahallalarDetailScreen extends ConsumerWidget {
   final MahallalarModel mahalla;
-  const _MahallalarDetailScreen({required this.mahalla});
+  final String lang;
+  final AppLocalizations l10n;
+  const _MahallalarDetailScreen({required this.mahalla, required this.lang, required this.l10n});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -73,18 +83,18 @@ class _MahallalarDetailScreen extends ConsumerWidget {
           ref.read(hokimiyatRepositoryProvider).getMahallaxodimlari(id))(mahalla.id),
     );
     return Scaffold(
-      appBar: AppBar(title: Text(mahalla.name)),
+      appBar: AppBar(title: Text(mahalla.localizedName(lang))),
       backgroundColor: kColorCream,
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          if (mahalla.description != null) ...[
-            Text(mahalla.description!,
+          if (mahalla.localizedDescription(lang) != null) ...[
+            Text(mahalla.localizedDescription(lang)!,
                 style: const TextStyle(fontSize: 14, color: kColorTextMuted, height: 1.5)),
             const SizedBox(height: 16),
           ],
-          const Text('Xodimlar',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: kColorInk)),
+          Text(l10n.workers,
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: kColorInk)),
           const SizedBox(height: 10),
           staffAsync.when(
             loading: () => const Center(child: CircularProgressIndicator(color: kColorPrimary)),
@@ -94,11 +104,11 @@ class _MahallalarDetailScreen extends ConsumerWidget {
                   .map((s) => Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: PersonCard(
-                          fullName: s.fullName,
-                          position: s.position,
+                          fullName: s.localizedName(lang),
+                          position: s.localizedPosition(lang),
                           photoUrl: s.photoUrl,
                           phone: s.phone,
-                          biography: s.biography,
+                          biography: s.localizedBiography(lang),
                           onCallTap: s.phone != null
                               ? () => launchUrl(Uri.parse('tel:${s.phone}'))
                               : null,

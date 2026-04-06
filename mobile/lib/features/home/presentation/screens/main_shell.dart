@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:smart_turakurgan/core/theme/colors.dart';
+import 'package:smart_turakurgan/l10n/app_localizations.dart';
 import 'package:smart_turakurgan/features/home/presentation/screens/home_screen.dart';
 import 'package:smart_turakurgan/features/home/presentation/screens/map_screen.dart';
 import 'package:smart_turakurgan/features/yangiliklar/presentation/screens/news_screen.dart';
@@ -24,6 +25,7 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       body: IndexedStack(
         index: _index,
@@ -35,26 +37,26 @@ class _MainShellState extends State<MainShell> {
         backgroundColor: kColorWhite,
         indicatorColor: kColorPrimary.withValues(alpha: 0.1),
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home, color: kColorPrimary),
-            label: 'Bosh sahifa',
+            icon: const Icon(Icons.home_outlined),
+            selectedIcon: const Icon(Icons.home, color: kColorPrimary),
+            label: l10n.navHome,
           ),
           NavigationDestination(
-            icon: Icon(Icons.map_outlined),
-            selectedIcon: Icon(Icons.map, color: kColorPrimary),
-            label: 'Xarita',
+            icon: const Icon(Icons.map_outlined),
+            selectedIcon: const Icon(Icons.map, color: kColorPrimary),
+            label: l10n.navMap,
           ),
           NavigationDestination(
-            icon: Icon(Icons.newspaper_outlined),
-            selectedIcon: Icon(Icons.newspaper, color: kColorPrimary),
-            label: 'Yangiliklar',
+            icon: const Icon(Icons.newspaper_outlined),
+            selectedIcon: const Icon(Icons.newspaper, color: kColorPrimary),
+            label: l10n.navNews,
           ),
           NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person, color: kColorPrimary),
-            label: 'Profil',
+            icon: const Icon(Icons.person_outline),
+            selectedIcon: const Icon(Icons.person, color: kColorPrimary),
+            label: l10n.navProfile,
           ),
         ],
       ),

@@ -59,3 +59,8 @@ final placesByCategoryProvider =
     FutureProvider.family<List<PlaceModel>, String>((ref, category) async {
   return ref.read(placesRepositoryProvider).getByCategory(category);
 });
+
+final placeByIdProvider =
+    FutureProvider.family<PlaceModel?, String>((ref, id) async {
+  return ref.read(placesRepositoryProvider).getById(id);
+});

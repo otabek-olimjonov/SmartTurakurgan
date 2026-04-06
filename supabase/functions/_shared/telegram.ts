@@ -54,6 +54,59 @@ export async function sendTelegramKeyboard(
   }
 }
 
+/**
+ * Sends a message with a reply keyboard that requests the user's
+ * Telegram-linked phone number. The keyboard is removed after one use.
+ */
+export async function sendContactRequest(
+  chatId: number,
+  text: string,
+  buttonLabel: string,
+): Promise<void> {
+  const url = `${TELEGRAM_API_BASE}${botToken()}/sendMessage`
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text,
+      parse_mode: 'HTML',
+      reply_markup: {
+        keyboard: [[{ text: buttonLabel, request_contact: true }]],
+        resize_keyboard: true,
+        one_time_keyboard: true,
+      },
+    }),
+  })
+
+  if (!res.ok) {
+    const body = await res.text()
+    console.error(`[telegram] sendContactRequest failed: ${res.status} ${body}`)
+  }
+}
+
+/**
+ * Removes the reply keyboard (sends a plain message that clears it).
+ */
+export async function removeKeyboard(chatId: number, text: string): Promise<void> {
+  const url = `${TELEGRAM_API_BASE}${botToken()}/sendMessage`
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text,
+      parse_mode: 'HTML',
+      reply_markup: { remove_keyboard: true },
+    }),
+  })
+
+  if (!res.ok) {
+    const body = await res.text()
+    console.error(`[telegram] removeKeyboard failed: ${res.status} ${body}`)
+  }
+}
+
 // ---- Types ----
 
 export interface TelegramUpdate {
@@ -68,6 +121,14 @@ export interface TelegramMessage {
   chat: TelegramChat
   date: number
   text?: string
+  contact?: TelegramContact
+}
+
+export interface TelegramContact {
+  phone_number: string
+  first_name: string
+  last_name?: string
+  user_id?: number
 }
 
 export interface TelegramCallbackQuery {

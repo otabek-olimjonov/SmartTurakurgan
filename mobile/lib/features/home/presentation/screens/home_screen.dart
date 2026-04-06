@@ -1,22 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_turakurgan/core/theme/colors.dart';
+import 'package:smart_turakurgan/core/locale/locale_provider.dart';
+import 'package:smart_turakurgan/l10n/app_localizations.dart';
+import 'package:smart_turakurgan/features/yangiliklar/data/repositories/yangilik_repository.dart';
+import 'package:smart_turakurgan/shared/widgets/news_card.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
-  static const _sections = [
-    _Section('Tuman hokimligi', Icons.account_balance_outlined, '/hokimiyat'),
-    _Section('Turizm', Icons.landscape_outlined, '/turizm'),
-    _Section("Ta'lim", Icons.school_outlined, '/talim'),
-    _Section('Tibbiyot', Icons.local_hospital_outlined, '/tibbiyot'),
-    _Section('Tashkilotlar', Icons.business_outlined, '/tashkilotlar'),
-    _Section('AI Yordamchi', Icons.auto_awesome_outlined, '/ai'),
-    _Section("Bog'lanish", Icons.contact_phone_outlined, '/boglanish'),
+  List<_Section> _buildSections(AppLocalizations l10n) => [
+    _Section(l10n.hokimiyat, Icons.account_balance_outlined, '/hokimiyat'),
+    _Section(l10n.turizm, Icons.landscape_outlined, '/turizm'),
+    _Section(l10n.talim, Icons.school_outlined, '/talim'),
+    _Section(l10n.tibbiyot, Icons.local_hospital_outlined, '/tibbiyot'),
+    _Section(l10n.tashkilotlar, Icons.business_outlined, '/tashkilotlar'),
+    _Section(l10n.aiAssistant, Icons.auto_awesome_outlined, '/ai'),
+    _Section(l10n.boglanish, Icons.contact_phone_outlined, '/boglanish'),
   ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final sections = _buildSections(l10n);
     return Scaffold(
       backgroundColor: kColorCream,
       body: CustomScrollView(
@@ -37,8 +43,8 @@ class HomeScreen extends ConsumerWidget {
                   child: const Icon(Icons.location_city, color: kColorWhite, size: 16),
                 ),
                 const SizedBox(width: 8),
-                const Text('Smart Turakurgan',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: kColorInk)),
+                Text(l10n.appName,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: kColorInk)),
               ],
             ),
             actions: [
@@ -58,8 +64,8 @@ class HomeScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Xizmatlar',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: kColorInk)),
+                  Text(l10n.services,
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: kColorInk)),
                   const SizedBox(height: 12),
                   GridView.builder(
                     shrinkWrap: true,
@@ -70,9 +76,9 @@ class HomeScreen extends ConsumerWidget {
                       mainAxisSpacing: 10,
                       childAspectRatio: 0.9,
                     ),
-                    itemCount: _sections.length,
+                    itemCount: sections.length,
                     itemBuilder: (context, index) {
-                      final s = _sections[index];
+                      final s = sections[index];
                       return _SectionTile(section: s);
                     },
                   ),
@@ -80,23 +86,25 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
           ),
-          // Quick news preview
+          // Quick news preview header
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('So\'nggi yangiliklar',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: kColorInk)),
+                  Text(l10n.navNews,
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: kColorInk)),
                   TextButton(
                     onPressed: () => Navigator.pushNamed(context, '/news'),
-                    child: const Text('Barchasi', style: TextStyle(color: kColorPrimary, fontSize: 13)),
+                    child: const Text('›', style: TextStyle(color: kColorPrimary, fontSize: 20)),
                   ),
                 ],
               ),
             ),
           ),
+          // News preview cards
+          _NewsPreview(onShowAll: () => Navigator.pushNamed(context, '/news')),
         ],
       ),
     );
@@ -110,8 +118,7 @@ class _Section {
   const _Section(this.label, this.icon, this.route);
 }
 
-class _SectionTile extends StatelessWidget {
-  final _Section section;
+class _SectionTile extends StatelessWidget {  final _Section section;
   const _SectionTile({required this.section});
 
   @override
@@ -147,6 +154,47 @@ class _SectionTile extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _NewsPreview extends ConsumerWidget {
+  final VoidCallback onShowAll;
+  const _NewsPreview({required this.onShowAll});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final newsAsync = ref.watch(newsProvider);
+    final lang = localeKey(ref.watch(localeProvider));
+    return SliverToBoxAdapter(
+      child: newsAsync.when(
+        loading: () => const SizedBox(
+          height: 80,
+          child: Center(child: CircularProgressIndicator(color: kColorPrimary, strokeWidth: 2)),
+        ),
+        error: (_, __) => const SizedBox.shrink(),
+        data: (news) {
+          if (news.isEmpty) return const SizedBox.shrink();
+          final preview = news.take(3).toList();
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Column(
+              children: preview
+                  .map((n) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: NewsCard(
+                          title: n.localizedTitle(lang),
+                          coverImageUrl: n.coverImageUrl,
+                          category: n.category,
+                          publishedAt: n.publishedAt,
+                          onTap: () => Navigator.pushNamed(context, '/news'),
+                        ),
+                      ))
+                  .toList(),
+            ),
+          );
+        },
       ),
     );
   }

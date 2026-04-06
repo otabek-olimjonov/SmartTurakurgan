@@ -28,3 +28,8 @@ final yangilikRepositoryProvider = Provider<YangilikRepository>((ref) => Yangili
 final newsProvider = FutureProvider<List<YangilikModel>>((ref) async {
   return ref.read(yangilikRepositoryProvider).getNews();
 });
+
+final yangilikByIdProvider =
+    FutureProvider.family<YangilikModel?, String>((ref, id) async {
+  return ref.read(yangilikRepositoryProvider).getById(id);
+});

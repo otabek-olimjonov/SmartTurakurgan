@@ -3,6 +3,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 const _jwtKey = 'citizen_jwt';
 const _userIdKey = 'user_id';
 const _roleKey = 'user_role';
+const _fullNameKey = 'user_full_name';
+const _phoneKey = 'user_phone';
 
 class SecureStorage {
   static const _storage = FlutterSecureStorage(
@@ -29,6 +31,19 @@ class SecureStorage {
 
   static Future<String?> getRole() async {
     return _storage.read(key: _roleKey);
+  }
+
+  static Future<void> saveProfile({required String fullName, required String phone}) async {
+    await _storage.write(key: _fullNameKey, value: fullName);
+    await _storage.write(key: _phoneKey, value: phone);
+  }
+
+  static Future<String?> getFullName() async {
+    return _storage.read(key: _fullNameKey);
+  }
+
+  static Future<String?> getPhone() async {
+    return _storage.read(key: _phoneKey);
   }
 
   static Future<void> clear() async {

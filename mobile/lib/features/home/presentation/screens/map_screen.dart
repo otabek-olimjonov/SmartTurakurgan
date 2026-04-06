@@ -5,17 +5,18 @@ import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:smart_turakurgan/shared/models/place_model.dart';
 import 'package:smart_turakurgan/core/theme/colors.dart';
+import 'package:smart_turakurgan/l10n/app_localizations.dart';
 import 'package:smart_turakurgan/features/tashkilotlar/data/repositories/places_repository.dart';
 
 const _allCategories = [
-  ('Hammasi', null),
-  ('Maktablar', 'maktab'),
-  ("MTM", 'maktabgacha'),
-  ('Shifoxona', 'davlat_tibbiyot'),
-  ('Klinika', 'xususiy_tibbiyot'),
-  ('Restoran', 'ovqatlanish'),
-  ("Mehmonxona", 'mexmonxona'),
-  ("Attraksion", 'diqqat_joy'),
+  (null, null),                             // 'All' - label from l10n
+  ('categorySchools', 'maktab'),
+  ('categoryPreschools', 'maktabgacha'),
+  ('categoryStateHospitals', 'davlat_tibbiyot'),
+  ('categoryPrivateClinics', 'xususiy_tibbiyot'),
+  ('categoryRestaurants', 'ovqatlanish'),
+  ('categoryHotels', 'mexmonxona'),
+  ('categoryAttractions', 'diqqat_joy'),
 ];
 
 // Turakurgan district center
@@ -39,14 +40,28 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         if (cat == null) {
           // Return all by fetching multiple categories
           final repo = ref.read(placesRepositoryProvider);
-          final results = await Future.wait(_allCategories
-              .skip(1)
-              .map((c) => repo.getByCategory(c.$2!)));
+          final allCats = _allCategories.skip(1).map((c) => c.$2!).toList();
+          final results = await Future.wait(allCats.map((c) => repo.getByCategory(c)));
           return results.expand((i) => i).toList();
         }
         return ref.read(placesRepositoryProvider).getByCategory(cat);
       })(_selectedCategory),
     );
+    final l10n = AppLocalizations.of(context);
+
+    String chipLabel(String? key) {
+      if (key == null) return l10n.allCategories;
+      switch (key) {
+        case 'categorySchools': return l10n.categorySchools;
+        case 'categoryPreschools': return l10n.categoryPreschools;
+        case 'categoryStateHospitals': return l10n.categoryStateHospitals;
+        case 'categoryPrivateClinics': return l10n.categoryPrivateClinics;
+        case 'categoryRestaurants': return l10n.categoryRestaurants;
+        case 'categoryHotels': return l10n.categoryHotels;
+        case 'categoryAttractions': return l10n.categoryAttractions;
+        default: return key;
+      }
+    }
 
     return Scaffold(
       body: Stack(
@@ -57,7 +72,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               options: MapOptions(initialCenter: _turakurganCenter, initialZoom: 12),
               children: [TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png')],
             ),
-            error: (_, __) => const Center(child: Text('Xarita yuklanmadi')),
+            error: (_, __) => Center(child: Text(l10n.mapLoadError)),
             data: (places) => FlutterMap(
               options: MapOptions(
                 initialCenter: _turakurganCenter,
@@ -94,7 +109,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   return Padding(
                     padding: const EdgeInsets.only(right: 6),
                     child: FilterChip(
-                      label: Text(c.$1),
+                      label: Text(chipLabel(c.$1)),
                       selected: selected,
                       onSelected: (_) => setState(
                           () => _selectedCategory = selected ? null : c.$2),
@@ -120,6 +135,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               right: 16,
               child: _PlaceMiniCard(
                 place: _selectedPlace!,
+                callLabel: l10n.call,
                 onClose: () => setState(() => _selectedPlace = null),
               ),
             ),
@@ -132,8 +148,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 class _PlaceMiniCard extends StatelessWidget {
   final PlaceModel place;
   final VoidCallback onClose;
+  final String callLabel;
 
-  const _PlaceMiniCard({required this.place, required this.onClose});
+  const _PlaceMiniCard({required this.place, required this.onClose, required this.callLabel});
 
   @override
   Widget build(BuildContext context) {

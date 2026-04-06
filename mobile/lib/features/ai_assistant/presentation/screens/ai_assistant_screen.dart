@@ -6,6 +6,7 @@ import 'package:smart_turakurgan/core/db/local_database.dart';
 import 'package:smart_turakurgan/core/auth/auth_notifier.dart';
 import 'package:smart_turakurgan/core/theme/colors.dart';
 import 'package:smart_turakurgan/core/config/app_config.dart';
+import 'package:smart_turakurgan/l10n/app_localizations.dart';
 
 class AiMessage {
   final String role; // 'user' | 'model'
@@ -101,9 +102,15 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
   bool _sending = false;
 
   static const _quickQuestions = [
-    'Subsidiya olish tartibi',
-    'Yer olish tartibi',
-    'Nafaqa masalalari',
+    'aiQuick1',
+    'aiQuick2',
+    'aiQuick3',
+  ];
+
+  List<String> _localizedQuickQuestions(AppLocalizations l10n) => [
+    l10n.aiQuick1,
+    l10n.aiQuick2,
+    l10n.aiQuick3,
   ];
 
   @override
@@ -137,9 +144,11 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
   @override
   Widget build(BuildContext context) {
     final messages = ref.watch(aiMessagesProvider);
+    final l10n = AppLocalizations.of(context);
+    final quickQs = _localizedQuickQuestions(l10n);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AI Yordamchi'),
+        title: Text(l10n.aiAssistant),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_outline),
@@ -161,14 +170,14 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                   children: [
                     const Icon(Icons.auto_awesome, size: 48, color: kColorPrimary),
                     const SizedBox(height: 12),
-                    const Text('AI Yordamchi',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: kColorInk)),
+                    Text(l10n.aiAssistant,
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: kColorInk)),
                     const SizedBox(height: 6),
                     const Text('Turakurgan tumani bo\'yicha savollaringizga javob beraman',
                         style: TextStyle(fontSize: 13, color: kColorTextMuted),
                         textAlign: TextAlign.center),
                     const SizedBox(height: 28),
-                    ..._quickQuestions.map((q) => Padding(
+                    ...quickQs.map((q) => Padding(
                           padding: const EdgeInsets.only(bottom: 8),
                           child: GestureDetector(
                             onTap: () => _send(q),
@@ -229,12 +238,12 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                       controller: _ctrl,
                       textInputAction: TextInputAction.send,
                       onSubmitted: _send,
-                      decoration: const InputDecoration(
-                        hintText: 'Savol bering...',
+                      decoration: InputDecoration(
+                        hintText: l10n.aiHint,
                         border: InputBorder.none,
                         enabledBorder: InputBorder.none,
                         focusedBorder: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
                         isDense: true,
                       ),
                     ),

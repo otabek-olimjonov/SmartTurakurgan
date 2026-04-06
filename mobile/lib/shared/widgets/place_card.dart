@@ -11,6 +11,8 @@ class PlaceCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onCallTap;
   final VoidCallback? onMapTap;
+  final String callLabel;
+  final String mapLabel;
 
   const PlaceCard({
     super.key,
@@ -22,6 +24,8 @@ class PlaceCard extends StatelessWidget {
     this.onTap,
     this.onCallTap,
     this.onMapTap,
+    this.callLabel = "Qo'ng'iroq",
+    this.mapLabel = 'Xarita',
   });
 
   @override
@@ -84,13 +88,13 @@ class PlaceCard extends StatelessWidget {
                       if (phone != null)
                         _ActionButton(
                           icon: Icons.phone_outlined,
-                          label: 'Qo\'ng\'iroq',
+                          label: callLabel,
                           onTap: onCallTap,
                         ),
                       if (phone != null) const SizedBox(width: 8),
                       _ActionButton(
                         icon: Icons.map_outlined,
-                        label: 'Xarita',
+                        label: mapLabel,
                         onTap: onMapTap,
                       ),
                     ],

@@ -6,6 +6,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:smart_turakurgan/shared/widgets/loading_widgets.dart';
 import 'package:smart_turakurgan/core/theme/colors.dart';
+import 'package:smart_turakurgan/core/locale/locale_provider.dart';
+import 'package:smart_turakurgan/l10n/app_localizations.dart';
 import 'package:smart_turakurgan/features/tashkilotlar/data/repositories/places_repository.dart';
 
 class PlaceDetailScreen extends ConsumerWidget {
@@ -14,10 +16,10 @@ class PlaceDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final placeAsync = ref.watch(
-      FutureProvider.family((ref, String id) =>
-          ref.read(placesRepositoryProvider).getById(id))(placeId),
-    );
+    final placeAsync = ref.watch(placeByIdProvider(placeId));
+    final locale = ref.watch(localeProvider);
+    final lang = localeKey(locale);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: kColorCream,
@@ -26,7 +28,7 @@ class PlaceDetailScreen extends ConsumerWidget {
         error: (e, _) => ErrorView(message: e.toString()),
         data: (place) {
           if (place == null) {
-            return const ErrorView(message: "Ma'lumot topilmadi");
+            return ErrorView(message: l10n.empty);
           }
           return CustomScrollView(
             slivers: [
@@ -52,11 +54,11 @@ class PlaceDetailScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(place.name,
+                      Text(place.localizedName(lang),
                           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: kColorInk)),
-                      if (place.director != null) ...[
+                      if (place.localizedDirector(lang) != null) ...[
                         const SizedBox(height: 4),
-                        Text('Rahbar: ${place.director}',
+                        Text('${l10n.directorLabel}: ${place.localizedDirector(lang)}',
                             style: const TextStyle(fontSize: 14, color: kColorTextMuted)),
                       ],
                       const SizedBox(height: 16),
@@ -65,7 +67,7 @@ class PlaceDetailScreen extends ConsumerWidget {
                         Row(children: [
                           const Icon(Icons.star, color: kColorGold, size: 16),
                           const SizedBox(width: 4),
-                          Text('${place.rating.toStringAsFixed(1)} (${place.commentCount} izoh)',
+                          Text('${place.rating.toStringAsFixed(1)} (${place.commentCount} ${l10n.reviews})',
                               style: const TextStyle(fontSize: 13, color: kColorTextMuted)),
                         ]),
                       const SizedBox(height: 16),
@@ -76,7 +78,7 @@ class PlaceDetailScreen extends ConsumerWidget {
                             child: ElevatedButton.icon(
                               onPressed: () => launchUrl(Uri.parse('tel:${place.phone}')),
                               icon: const Icon(Icons.phone, size: 16),
-                              label: const Text("Qo'ng'iroq"),
+                              label: Text(l10n.call),
                             ),
                           ),
                         if (place.phone != null && place.locationLat != null)
@@ -87,21 +89,21 @@ class PlaceDetailScreen extends ConsumerWidget {
                               onPressed: () => launchUrl(Uri.parse(
                                   'https://maps.google.com/maps?q=${place.locationLat},${place.locationLng}')),
                               icon: const Icon(Icons.map_outlined, size: 16),
-                              label: const Text("Yo'nalish"),
+                              label: Text(l10n.directions),
                             ),
                           ),
                       ]),
-                      if (place.description != null && place.description!.isNotEmpty) ...[
+                      if (place.localizedDescription(lang) != null && place.localizedDescription(lang)!.isNotEmpty) ...[
                         const SizedBox(height: 20),
-                        const Text('Tavsif', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: kColorInk)),
+                        Text(l10n.descriptionLabel, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: kColorInk)),
                         const SizedBox(height: 8),
-                        Text(place.description!,
+                        Text(place.localizedDescription(lang)!,
                             style: const TextStyle(fontSize: 14, color: kColorTextMuted, height: 1.6)),
                       ],
                       if (place.locationLat != null && place.locationLng != null) ...[
                         const SizedBox(height: 20),
-                        const Text('Joylashuv',
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: kColorInk)),
+                        Text(l10n.locationLabel,
+                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: kColorInk)),
                         const SizedBox(height: 8),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),

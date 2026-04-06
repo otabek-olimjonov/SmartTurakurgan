@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:smart_turakurgan/shared/widgets/person_card.dart';
 import 'package:smart_turakurgan/shared/widgets/loading_widgets.dart';
 import 'package:smart_turakurgan/core/theme/colors.dart';
+import 'package:smart_turakurgan/core/locale/locale_provider.dart';
 import 'package:smart_turakurgan/features/hokimiyat/data/repositories/hokimiyat_repository.dart';
 
 class RahbariyatScreen extends ConsumerWidget {
@@ -14,6 +15,8 @@ class RahbariyatScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final listAsync = ref.watch(rahbariyatByCategoryProvider(category));
+    final locale = ref.watch(localeProvider);
+    final lang = localeKey(locale);
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       backgroundColor: kColorCream,
@@ -29,11 +32,11 @@ class RahbariyatScreen extends ConsumerWidget {
             itemBuilder: (context, index) {
               final item = list[index];
               return PersonCard(
-                fullName: item.fullName,
-                position: item.position,
+                fullName: item.localizedName(lang),
+                position: item.localizedPosition(lang),
                 photoUrl: item.photoUrl,
                 phone: item.phone,
-                biography: item.biography,
+                biography: item.localizedBiography(lang),
                 receptionDays: item.receptionDays,
                 onCallTap: item.phone != null
                     ? () => launchUrl(Uri.parse('tel:${item.phone}'))

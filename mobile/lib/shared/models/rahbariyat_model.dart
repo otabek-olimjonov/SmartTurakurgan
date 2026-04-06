@@ -61,4 +61,9 @@ class RahbariyatModel {
     if (locale == 'uz') return position;
     return (translations[locale] as Map<String, dynamic>?)?['position'] as String? ?? position;
   }
+
+  String? localizedBiography(String locale) {
+    if (locale == 'uz') return biography;
+    return (translations[locale] as Map<String, dynamic>?)?['biography'] as String? ?? biography;
+  }
 }

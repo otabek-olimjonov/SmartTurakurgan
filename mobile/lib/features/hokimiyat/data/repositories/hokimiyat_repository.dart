@@ -42,6 +42,22 @@ class MahallalarModel {
       updatedAt: map['updated_at'] as String,
     );
   }
+
+  String localizedName(String languageCode) {
+    final t = translations[languageCode];
+    if (t is Map && (t['name'] as String?)?.isNotEmpty == true) {
+      return t['name'] as String;
+    }
+    return name;
+  }
+
+  String? localizedDescription(String languageCode) {
+    final t = translations[languageCode];
+    if (t is Map && (t['description'] as String?)?.isNotEmpty == true) {
+      return t['description'] as String;
+    }
+    return description;
+  }
 }
 
 class YerMaydonModel {
@@ -53,6 +69,7 @@ class YerMaydonModel {
   final String status;
   final String? auctionUrl;
   final String? description;
+  final Map<String, dynamic> translations;
 
   const YerMaydonModel({
     required this.id,
@@ -63,9 +80,16 @@ class YerMaydonModel {
     this.status = 'active',
     this.auctionUrl,
     this.description,
+    this.translations = const {},
   });
 
   factory YerMaydonModel.fromMap(Map<String, dynamic> map) {
+    Map<String, dynamic> trans = {};
+    if (map['translations'] is String) {
+      trans = jsonDecode(map['translations'] as String) as Map<String, dynamic>? ?? {};
+    } else if (map['translations'] is Map) {
+      trans = Map<String, dynamic>.from(map['translations'] as Map);
+    }
     return YerMaydonModel(
       id: map['id'] as String,
       title: map['title'] as String,
@@ -75,7 +99,24 @@ class YerMaydonModel {
       status: map['status'] as String? ?? 'active',
       auctionUrl: map['auction_url'] as String?,
       description: map['description'] as String?,
+      translations: trans,
     );
+  }
+
+  String localizedTitle(String languageCode) {
+    final t = translations[languageCode];
+    if (t is Map && (t['title'] as String?)?.isNotEmpty == true) {
+      return t['title'] as String;
+    }
+    return title;
+  }
+
+  String? localizedDescription(String languageCode) {
+    final t = translations[languageCode];
+    if (t is Map && (t['description'] as String?)?.isNotEmpty == true) {
+      return t['description'] as String;
+    }
+    return description;
   }
 }
 

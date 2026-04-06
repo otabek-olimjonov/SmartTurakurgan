@@ -10,12 +10,16 @@ class AuthState {
   final String? userId;
   final String? role;
   final bool isNewUser;
+  final String? fullName;
+  final String? phoneNumber;
 
   const AuthState({
     this.status = AuthStatus.unknown,
     this.userId,
     this.role,
     this.isNewUser = false,
+    this.fullName,
+    this.phoneNumber,
   });
 
   AuthState copyWith({
@@ -23,12 +27,16 @@ class AuthState {
     String? userId,
     String? role,
     bool? isNewUser,
+    String? fullName,
+    String? phoneNumber,
   }) {
     return AuthState(
       status: status ?? this.status,
       userId: userId ?? this.userId,
       role: role ?? this.role,
       isNewUser: isNewUser ?? this.isNewUser,
+      fullName: fullName ?? this.fullName,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
     );
   }
 }
@@ -47,7 +55,15 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     if (jwt == null) return const AuthState(status: AuthStatus.unauthenticated);
     final userId = await SecureStorage.getUserId();
     final role = await SecureStorage.getRole();
-    return AuthState(status: AuthStatus.authenticated, userId: userId, role: role);
+    final fullName = await SecureStorage.getFullName();
+    final phoneNumber = await SecureStorage.getPhone();
+    return AuthState(
+      status: AuthStatus.authenticated,
+      userId: userId,
+      role: role,
+      fullName: fullName,
+      phoneNumber: phoneNumber,
+    );
   }
 
   /// Step 1: call init, get Telegram deep link
@@ -72,13 +88,23 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
           final userId = resp.data['user_id'] as String;
           final role = resp.data['role'] as String? ?? 'citizen';
           final isNew = resp.data['is_new_user'] as bool? ?? false;
+          final fullName = resp.data['full_name'] as String?;
+          final phoneNumber = resp.data['phone_number'] as String?;
           await SecureStorage.saveJwt(jwt);
           await SecureStorage.saveUser(userId: userId, role: role);
+          if (fullName != null || phoneNumber != null) {
+            await SecureStorage.saveProfile(
+              fullName: fullName ?? '',
+              phone: phoneNumber ?? '',
+            );
+          }
           state = AsyncData(AuthState(
             status: AuthStatus.authenticated,
             userId: userId,
             role: role,
             isNewUser: isNew,
+            fullName: fullName,
+            phoneNumber: phoneNumber,
           ));
           return true;
         }

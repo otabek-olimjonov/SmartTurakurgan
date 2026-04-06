@@ -6,7 +6,9 @@ import 'package:dio/dio.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'core/utils/timeago_uz.dart';
 
+import 'l10n/app_localizations.dart';
 import 'core/config/app_config.dart';
+import 'core/locale/locale_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'core/auth/auth_notifier.dart';
 import 'core/auth/secure_storage.dart';
@@ -19,6 +21,10 @@ import 'features/tashkilotlar/presentation/screens/place_list_screen.dart';
 import 'features/boglanish/presentation/screens/boglanish_screen.dart';
 import 'features/ai_assistant/presentation/screens/ai_assistant_screen.dart';
 import 'features/yangiliklar/presentation/screens/news_screen.dart';
+import 'features/hokimiyat/presentation/screens/hokimiyat_about_screen.dart';
+import 'features/hokimiyat/presentation/screens/tuman_about_screen.dart';
+import 'features/home/presentation/screens/search_screen.dart';
+import 'features/home/presentation/screens/notifications_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,16 +43,27 @@ Future<void> main() async {
 }
 
 Dio buildDio(String? jwt) {
-  return Dio(BaseOptions(
+  final dio = Dio(BaseOptions(
     baseUrl: '${AppConfig.supabaseUrl}/functions/v1',
     connectTimeout: const Duration(seconds: 15),
     receiveTimeout: const Duration(seconds: 15),
     headers: {
       'Content-Type': 'application/json',
       'apikey': AppConfig.supabaseAnonKey,
-      'Authorization': 'Bearer ${jwt ?? AppConfig.supabaseAnonKey}',
     },
   ));
+  // Always inject the latest JWT from secure storage before every request.
+  // This means even the singleton dioProvider (created with null jwt at startup)
+  // will use the real user JWT after login is complete.
+  dio.interceptors.add(InterceptorsWrapper(
+    onRequest: (options, handler) async {
+      final storedJwt = await SecureStorage.getJwt();
+      options.headers['Authorization'] =
+          'Bearer ${storedJwt ?? AppConfig.supabaseAnonKey}';
+      handler.next(options);
+    },
+  ));
+  return dio;
 }
 
 class SmartTurakurganApp extends ConsumerWidget {
@@ -54,11 +71,14 @@ class SmartTurakurganApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final locale = ref.watch(localeProvider);
     return MaterialApp(
       title: 'Smart Turakurgan',
       theme: buildAppTheme(),
       debugShowCheckedModeBanner: false,
-      localizationsDelegates: const [
+      locale: locale,
+      localizationsDelegates: [
+        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
@@ -80,34 +100,32 @@ class SmartTurakurganApp extends ConsumerWidget {
         return MaterialPageRoute(builder: (_) => const HokimiyatScreen());
       case '/turizm':
         return MaterialPageRoute(
-          builder: (_) => const PlaceListScreen(
-            title: 'Turizm',
-            categories: ['diqqat_joy', 'ovqatlanish', 'mexmonxona'],
-            tabLabels: ['Diqqatga sazovor', 'Ovqatlanish', 'Mehmonxonalar'],
+          builder: (ctx) => PlaceListScreen(
+            title: AppLocalizations.of(ctx).turizm,
+            categories: const ['diqqat_joy', 'ovqatlanish', 'mexmonxona'],
           ),
         );
       case '/talim':
         return MaterialPageRoute(
-          builder: (_) => const PlaceListScreen(
-            title: 'Talim',
-            categories: ['oquv_markaz', 'maktabgacha', 'maktab', 'texnikum', 'oliy_talim'],
-            tabLabels: ['Oquv markazlari', 'Maktabgacha', 'Maktablar', 'Texnikumlar', 'Oliy talim'],
+          builder: (ctx) => PlaceListScreen(
+            title: AppLocalizations.of(ctx).talim,
+            categories: const [
+              'oquv_markaz', 'maktabgacha', 'maktab', 'texnikum', 'oliy_talim'
+            ],
           ),
         );
       case '/tibbiyot':
         return MaterialPageRoute(
-          builder: (_) => const PlaceListScreen(
-            title: 'Tibbiyot',
-            categories: ['davlat_tibbiyot', 'xususiy_tibbiyot'],
-            tabLabels: ['Davlat tibbiyot', 'Xususiy klinikalar'],
+          builder: (ctx) => PlaceListScreen(
+            title: AppLocalizations.of(ctx).tibbiyot,
+            categories: const ['davlat_tibbiyot', 'xususiy_tibbiyot'],
           ),
         );
       case '/tashkilotlar':
         return MaterialPageRoute(
-          builder: (_) => const PlaceListScreen(
-            title: 'Tashkilotlar',
-            categories: ['davlat_tashkilot', 'xususiy_korxona'],
-            tabLabels: ['Davlat tashkilotlari', 'Xususiy korxonalar'],
+          builder: (ctx) => PlaceListScreen(
+            title: AppLocalizations.of(ctx).tashkilotlar,
+            categories: const ['davlat_tashkilot', 'xususiy_korxona'],
           ),
         );
       case '/ai':
@@ -116,6 +134,14 @@ class SmartTurakurganApp extends ConsumerWidget {
         return MaterialPageRoute(builder: (_) => const BoglanishScreen());
       case '/news':
         return MaterialPageRoute(builder: (_) => const NewsScreen());
+      case '/hokimiyat/about':
+        return MaterialPageRoute(builder: (_) => const HokimiyatAboutScreen());
+      case '/hokimiyat/tuman':
+        return MaterialPageRoute(builder: (_) => const TumanAboutScreen());
+      case '/search':
+        return MaterialPageRoute(builder: (_) => const SearchScreen(), fullscreenDialog: true);
+      case '/notifications':
+        return MaterialPageRoute(builder: (_) => const NotificationsScreen());
       default:
         return null;
     }

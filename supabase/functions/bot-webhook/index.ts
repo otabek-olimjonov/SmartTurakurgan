@@ -3,7 +3,11 @@
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { handleCors, jsonResponse } from '../_shared/cors.ts'
-import { sendTelegramMessage } from '../_shared/telegram.ts'
+import {
+  sendTelegramMessage,
+  sendContactRequest,
+  removeKeyboard,
+} from '../_shared/telegram.ts'
 import type { TelegramUpdate } from '../_shared/telegram.ts'
 
 serve(async (req: Request) => {
@@ -32,7 +36,6 @@ serve(async (req: Request) => {
 
     const message = update.message
     if (!message || !message.from) {
-      // Ignore non-message updates (e.g. channel posts, edited messages)
       return jsonResponse({ ok: true })
     }
 
@@ -40,7 +43,12 @@ serve(async (req: Request) => {
     const telegramUser = message.from
     const text = message.text ?? ''
 
-    // Handle /start {token} command
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    )
+
+    // ── Step 1: /start {token} ──────────────────────────────────────────────
     if (text.startsWith('/start')) {
       const parts = text.split(' ')
       const token = parts[1]?.trim()
@@ -53,11 +61,6 @@ serve(async (req: Request) => {
         )
         return jsonResponse({ ok: true })
       }
-
-      const supabase = createClient(
-        Deno.env.get('SUPABASE_URL')!,
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-      )
 
       // Look up the pending auth token
       const { data: authRecord, error: authError } = await supabase
@@ -85,24 +88,91 @@ serve(async (req: Request) => {
       }
 
       if (authRecord.confirmed) {
+        await sendTelegramMessage(chatId, '✅ Siz allaqachon tizimga kirgansiz.')
+        return jsonResponse({ ok: true })
+      }
+
+      // Save telegram_id into pending_auth so we can match it when the
+      // contact message arrives (confirmed stays false until contact is shared)
+      await supabase
+        .from('pending_auth')
+        .update({ telegram_id: telegramUser.id })
+        .eq('id', authRecord.id)
+
+      // Ask user to share their Telegram-linked phone number
+      await sendContactRequest(
+        chatId,
+        `Salom, <b>${telegramUser.first_name}</b>! 👋\n\n` +
+        'Ro\'yxatdan o\'tishni yakunlash uchun telefon raqamingizni ulashing.',
+        '📱 Telefon raqamni ulashish',
+      )
+      return jsonResponse({ ok: true })
+    }
+
+    // ── Step 2: Contact shared ──────────────────────────────────────────────
+    if (message.contact) {
+      const contact = message.contact
+
+      // Contact must belong to the sender (security: prevent sharing others' contacts)
+      if (contact.user_id && contact.user_id !== telegramUser.id) {
         await sendTelegramMessage(
           chatId,
-          '✅ Siz allaqachon tizimga kirgansiz.',
+          '❌ Iltimos, faqat o\'z telefon raqamingizni ulashing.',
         )
         return jsonResponse({ ok: true })
       }
 
-      // Upsert the user record
+      // Normalize phone: ensure it starts with +
+      let phone = contact.phone_number.trim()
+      if (!phone.startsWith('+')) phone = '+' + phone
+
+      // Build full name from contact (Telegram profile name)
+      const fullName = [contact.first_name, contact.last_name]
+        .filter(Boolean)
+        .join(' ')
+        .trim() || telegramUser.first_name
+
+      // Find an unconfirmed pending_auth for this telegram_id
+      const { data: authRecord, error: authError } = await supabase
+        .from('pending_auth')
+        .select('id, expires_at')
+        .eq('telegram_id', telegramUser.id)
+        .eq('confirmed', false)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+
+      if (authError || !authRecord) {
+        await sendTelegramMessage(
+          chatId,
+          '❌ Faol kirish so\'rovi topilmadi.\n\n' +
+          'Iltimos, ilovada qaytadan urinib ko\'ring.',
+        )
+        return jsonResponse({ ok: true })
+      }
+
+      if (new Date(authRecord.expires_at) < new Date()) {
+        await sendTelegramMessage(
+          chatId,
+          '⏰ Kirish havolasining muddati tugagan.\n\n' +
+          'Iltimos, ilovada qaytadan urinib ko\'ring.',
+        )
+        return jsonResponse({ ok: true })
+      }
+
+      // Upsert user with name + phone from Telegram
       const { data: user, error: upsertError } = await supabase
         .from('users')
         .upsert(
           {
             telegram_id: telegramUser.id,
             telegram_username: telegramUser.username ?? null,
+            full_name: fullName,
+            phone_number: phone,
           },
           { onConflict: 'telegram_id', ignoreDuplicates: false },
         )
-        .select('id, role, full_name')
+        .select('id, role')
         .single()
 
       if (upsertError || !user) {
@@ -114,10 +184,10 @@ serve(async (req: Request) => {
         return jsonResponse({ ok: true })
       }
 
-      // Mark the pending_auth as confirmed
+      // Mark pending_auth as confirmed
       const { error: confirmError } = await supabase
         .from('pending_auth')
-        .update({ confirmed: true, telegram_id: telegramUser.id })
+        .update({ confirmed: true })
         .eq('id', authRecord.id)
 
       if (confirmError) {
@@ -125,30 +195,26 @@ serve(async (req: Request) => {
         return jsonResponse({ ok: true })
       }
 
-      // Determine if this is a new or returning user
-      const isNewUser = !user.full_name
-      const greeting = isNewUser
-        ? `Xush kelibsiz, <b>${telegramUser.first_name}</b>! 🎉\n\n` +
-          'Ilovaga qaytib, ro\'yxatdan o\'tishni yakunlang.'
-        : `Xush kelibsiz, <b>${user.full_name ?? telegramUser.first_name}</b>! ✅\n\n` +
-          'Ilovaga qaytib, xizmatlardan foydalaning.'
-
-      await sendTelegramMessage(chatId, greeting)
+      // Remove keyboard and send success
+      await removeKeyboard(
+        chatId,
+        `✅ Tabriklaymiz, <b>${fullName}</b>!\n\n` +
+        'Siz muvaffaqiyatli ro\'yxatdan o\'tdingiz.\n' +
+        'Ilovaga qaytib, barcha xizmatlardan foydalaning.',
+      )
       return jsonResponse({ ok: true })
     }
 
-    // Handle any other messages
+    // ── Fallback ────────────────────────────────────────────────────────────
     await sendTelegramMessage(
       chatId,
       'Assalomu alaykum! Men <b>Smart Turakurgan</b> botiman.\n\n' +
-      'Barcha xizmatlar ilovada mavjud. Ilovani yuklab oling: ' +
-      'https://smartturakurgan.uz',
+      'Barcha xizmatlar ilovada mavjud.',
     )
 
     return jsonResponse({ ok: true })
   } catch (err) {
     console.error('[bot-webhook] Unexpected error:', err)
-    // Always return 200 to Telegram — otherwise it will retry
     return jsonResponse({ ok: true })
   }
 })

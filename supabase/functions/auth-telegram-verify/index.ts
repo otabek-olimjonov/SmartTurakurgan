@@ -60,7 +60,7 @@ serve(async (req: Request) => {
     // Confirmed — look up the user and issue a JWT
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select('id, telegram_id, role, full_name')
+      .select('id, telegram_id, role, full_name, phone_number')
       .eq('telegram_id', authRecord.telegram_id)
       .single()
 
@@ -80,7 +80,14 @@ serve(async (req: Request) => {
     // Clean up consumed token
     await supabase.from('pending_auth').delete().eq('token', token)
 
-    return jsonResponse({ jwt, user_id: user.id, role: user.role, is_new_user: isNewUser })
+    return jsonResponse({
+      jwt,
+      user_id: user.id,
+      role: user.role,
+      is_new_user: isNewUser,
+      full_name: user.full_name ?? null,
+      phone_number: user.phone_number ?? null,
+    })
   } catch (err) {
     console.error('[auth-telegram-verify] Unexpected error:', err)
     return jsonResponse({ error: 'Internal server error' }, 500)

@@ -66,4 +66,9 @@ class PlaceModel {
     if (locale == 'uz') return description;
     return (translations[locale] as Map<String, dynamic>?)?['description'] as String? ?? description;
   }
+
+  String? localizedDirector(String locale) {
+    if (locale == 'uz') return director;
+    return (translations[locale] as Map<String, dynamic>?)?['director'] as String? ?? director;
+  }
 }

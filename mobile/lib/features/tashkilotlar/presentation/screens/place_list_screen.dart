@@ -1,27 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:smart_turakurgan/shared/models/place_model.dart';
 import 'package:smart_turakurgan/shared/widgets/place_card.dart';
 import 'package:smart_turakurgan/shared/widgets/loading_widgets.dart';
-import 'package:smart_turakurgan/core/theme/colors.dart';
+import 'package:smart_turakurgan/core/locale/locale_provider.dart';
+import 'package:smart_turakurgan/l10n/app_localizations.dart';
 import 'package:smart_turakurgan/features/tashkilotlar/data/repositories/places_repository.dart';
 import 'place_detail_screen.dart';
 
 class PlaceListScreen extends ConsumerWidget {
   final String title;
   final List<String> categories;
-  final List<String>? tabLabels;
 
   const PlaceListScreen({
     super.key,
     required this.title,
     required this.categories,
-    this.tabLabels,
   });
+
+  static String tabLabelForCategory(String category, AppLocalizations l10n) {
+    switch (category) {
+      case 'diqqat_joy': return l10n.tabAttractions;
+      case 'ovqatlanish': return l10n.tabRestaurants;
+      case 'mexmonxona': return l10n.tabHotels;
+      case 'oquv_markaz': return l10n.tabLearningCenters;
+      case 'maktabgacha': return l10n.tabPreschools;
+      case 'maktab': return l10n.tabSchools;
+      case 'texnikum': return l10n.tabColleges;
+      case 'oliy_talim': return l10n.tabUniversities;
+      case 'davlat_tibbiyot': return l10n.tabStateHospitals;
+      case 'xususiy_tibbiyot': return l10n.tabPrivateClinics;
+      case 'davlat_tashkilot': return l10n.tabStateOrgs;
+      case 'xususiy_korxona': return l10n.tabPrivateEnterprises;
+      default: return category;
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     if (categories.length == 1) {
       return _SingleTab(title: title, category: categories.first);
     }
@@ -32,10 +49,9 @@ class PlaceListScreen extends ConsumerWidget {
           title: Text(title),
           bottom: TabBar(
             isScrollable: true,
-            tabs: List.generate(
-              categories.length,
-              (i) => Tab(text: tabLabels?[i] ?? categories[i]),
-            ),
+            tabs: categories
+                .map((cat) => Tab(text: tabLabelForCategory(cat, l10n)))
+                .toList(),
           ),
         ),
         body: TabBarView(
@@ -67,11 +83,14 @@ class _CategoryList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final placesAsync = ref.watch(placesByCategoryProvider(category));
+    final locale = ref.watch(localeProvider);
+    final lang = localeKey(locale);
+    final l10n = AppLocalizations.of(context);
     return placesAsync.when(
       loading: () => const LoadingCardList(),
       error: (e, _) => ErrorView(message: e.toString()),
       data: (places) {
-        if (places.isEmpty) return const EmptyView(message: "Ma'lumot topilmadi");
+        if (places.isEmpty) return EmptyView(message: l10n.empty);
         return ListView.separated(
           padding: const EdgeInsets.all(16),
           itemCount: places.length,
@@ -79,11 +98,13 @@ class _CategoryList extends ConsumerWidget {
           itemBuilder: (context, index) {
             final place = places[index];
             return PlaceCard(
-              name: place.name,
+              name: place.localizedName(lang),
               imageUrl: place.imageUrls.isNotEmpty ? place.imageUrls.first : null,
               phone: place.phone,
-              description: place.description,
+              description: place.localizedDescription(lang),
               rating: place.rating,
+              callLabel: l10n.call,
+              mapLabel: l10n.mapLabel,
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => PlaceDetailScreen(placeId: place.id)),

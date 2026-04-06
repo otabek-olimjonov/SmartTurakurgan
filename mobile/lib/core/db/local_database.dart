@@ -14,7 +14,7 @@ class LocalDatabase {
     final path = join(dbPath, 'smart_turakurgan.db');
     return openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -115,6 +115,17 @@ class LocalDatabase {
     ''');
 
     await db.execute('''
+      CREATE TABLE IF NOT EXISTS yangilik_images (
+        id TEXT PRIMARY KEY,
+        yangilik_id TEXT NOT NULL,
+        image_url TEXT NOT NULL,
+        is_main INTEGER DEFAULT 0,
+        sort_order INTEGER DEFAULT 0,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+
+    await db.execute('''
       CREATE TABLE IF NOT EXISTS yangiliklar (
         id TEXT PRIMARY KEY,
         title TEXT NOT NULL,
@@ -157,11 +168,25 @@ class LocalDatabase {
     await db.execute('CREATE INDEX IF NOT EXISTS idx_yangiliklar_published ON yangiliklar(published_at)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_mahalla_xodimlari_mahalla ON mahalla_xodimlari(mahalla_id)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_place_images_place ON place_images(place_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_yangilik_images_yangilik ON yangilik_images(yangilik_id)');
   }
 
   static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
       await db.execute('ALTER TABLE place_images ADD COLUMN is_main INTEGER DEFAULT 0');
+    }
+    if (oldVersion < 3) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS yangilik_images (
+          id TEXT PRIMARY KEY,
+          yangilik_id TEXT NOT NULL,
+          image_url TEXT NOT NULL,
+          is_main INTEGER DEFAULT 0,
+          sort_order INTEGER DEFAULT 0,
+          updated_at TEXT NOT NULL
+        )
+      ''');
+      await db.execute('CREATE INDEX IF NOT EXISTS idx_yangilik_images_yangilik ON yangilik_images(yangilik_id)');
     }
   }
 }

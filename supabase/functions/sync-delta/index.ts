@@ -66,6 +66,7 @@ serve(async (req: Request) => {
       yer_maydonlariResult,
       placesResult,
       place_imagesResult,
+      yangilik_imagesResult,
     ] = await Promise.all([
       supabase
         .from('rahbariyat')
@@ -101,6 +102,11 @@ serve(async (req: Request) => {
         .from('place_images')
         .select('*')
         .gt('updated_at', since),
+
+      supabase
+        .from('yangilik_images')
+        .select('*')
+        .gt('updated_at', since),
     ])
 
     const errors = [
@@ -110,6 +116,7 @@ serve(async (req: Request) => {
       yer_maydonlariResult.error,
       placesResult.error,
       place_imagesResult.error,
+      yangilik_imagesResult.error,
     ].filter(Boolean)
 
     if (errors.length > 0) {
@@ -124,6 +131,7 @@ serve(async (req: Request) => {
       yer_maydonlari:    yer_maydonlariResult.data    ?? [],
       places:            placesResult.data            ?? [],
       place_images:      place_imagesResult.data      ?? [],
+      yangilik_images:   yangilik_imagesResult.data   ?? [],
       synced_at:         new Date().toISOString(),
     })
   } catch (err) {

@@ -77,8 +77,10 @@ class SyncEngine {
     try {
       final resp = await _dio.get('/sync-news');
       final news = (resp.data['yangiliklar'] as List?) ?? [];
+      final images = (resp.data['yangilik_images'] as List?) ?? [];
       final db = await LocalDatabase.instance;
       await _upsertRows(db, 'yangiliklar', news);
+      await _upsertRows(db, 'yangilik_images', images);
     } catch (e) {
       debugPrint('[SyncEngine] newsSync error: $e');
     }
@@ -93,6 +95,7 @@ class SyncEngine {
       'places': data['places'],
       'place_images': data['place_images'],
       'yangiliklar': data['yangiliklar'],
+      'yangilik_images': data['yangilik_images'],
     };
 
     for (final entry in tables.entries) {
@@ -122,9 +125,11 @@ class SyncEngine {
       if (r.containsKey('translations') && r['translations'] is Map) {
         r['translations'] = jsonEncode(r['translations']);
       }
-      // Convert booleans
-      if (r.containsKey('is_published')) {
-        r['is_published'] = (r['is_published'] == true) ? 1 : 0;
+      // Convert all booleans to 0/1 (sqflite doesn't support bool)
+      for (final key in r.keys.toList()) {
+        if (r[key] is bool) {
+          r[key] = (r[key] as bool) ? 1 : 0;
+        }
       }
       // Remove columns that don't exist in local schema (e.g. created_at)
       r.removeWhere((key, _) => !cols.contains(key));

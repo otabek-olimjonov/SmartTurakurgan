@@ -4,6 +4,7 @@ import 'package:smart_turakurgan/core/theme/colors.dart';
 import 'package:smart_turakurgan/core/locale/locale_provider.dart';
 import 'package:smart_turakurgan/l10n/app_localizations.dart';
 import 'package:smart_turakurgan/features/yangiliklar/data/repositories/yangilik_repository.dart';
+import 'package:smart_turakurgan/features/yangiliklar/presentation/screens/news_screen.dart';
 import 'package:smart_turakurgan/shared/widgets/news_card.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -37,10 +38,12 @@ class HomeScreen extends ConsumerWidget {
                   width: 28,
                   height: 28,
                   decoration: BoxDecoration(
-                    color: kColorPrimary,
                     borderRadius: BorderRadius.circular(7),
                   ),
-                  child: const Icon(Icons.location_city, color: kColorWhite, size: 16),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(7),
+                    child: Image.asset('assets/images/logo.png', fit: BoxFit.cover),
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Text(l10n.appName,
@@ -188,7 +191,12 @@ class _NewsPreview extends ConsumerWidget {
                           coverImageUrl: n.coverImageUrl,
                           category: n.category,
                           publishedAt: n.publishedAt,
-                          onTap: () => Navigator.pushNamed(context, '/news'),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => NewsDetailScreen(newsId: n.id),
+                            ),
+                          ),
                         ),
                       ))
                   .toList(),

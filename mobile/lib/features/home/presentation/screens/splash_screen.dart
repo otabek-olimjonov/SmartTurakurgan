@@ -18,70 +18,45 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kColorCream,
-      body: SafeArea(
-        child: Column(
-          children: [
-            const Spacer(flex: 3),
-            // ── Logo ──────────────────────────────────────────────────────────
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: kColorPrimary,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Icon(
-                Icons.location_city_rounded,
-                color: Colors.white,
-                size: 42,
-              ),
+      backgroundColor: Colors.black,
+      body: Column(
+        children: [
+          // ── Background image — fills all available space ──────────────────
+          Expanded(
+            child: Image.asset(
+              'assets/images/splash_bg.png',
+              fit: BoxFit.cover,
+              width: double.infinity,
             ),
-            const SizedBox(height: 20),
-            const Text(
-              'Smart Turakurgan',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w500,
-                color: kColorInk,
-                letterSpacing: -0.3,
-              ),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'Barcha xizmatlar — bitta ilovada',
-              style: TextStyle(
-                fontSize: 13,
-                color: kColorTextMuted,
-              ),
-            ),
-            const Spacer(flex: 4),
-            // ── Progress bar + message ────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(40, 0, 40, 52),
-              child: Column(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: _AnimatedProgressBar(progress: progress),
-                  ),
-                  const SizedBox(height: 12),
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    child: Text(
-                      message,
-                      key: ValueKey(message),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: kColorTextMuted,
-                      ),
+          ),
+          // ── Progress bar + message — outside the image, always visible ────
+          Container(
+            width: double.infinity,
+            color: Colors.black,
+            padding: const EdgeInsets.fromLTRB(40, 20, 40, 48),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: _AnimatedProgressBar(progress: progress),
+                ),
+                const SizedBox(height: 12),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: Text(
+                    message,
+                    key: ValueKey(message),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.white70,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -143,8 +118,8 @@ class _AnimatedProgressBarState extends State<_AnimatedProgressBar>
     if (widget.progress == null) {
       return LinearProgressIndicator(
         minHeight: 3,
-        backgroundColor: kColorStone,
-        valueColor: const AlwaysStoppedAnimation(kColorPrimary),
+        backgroundColor: Colors.white24,
+        valueColor: const AlwaysStoppedAnimation(Colors.white),
       );
     }
     // Determinate mode — animated
@@ -153,8 +128,8 @@ class _AnimatedProgressBarState extends State<_AnimatedProgressBar>
       builder: (_, __) => LinearProgressIndicator(
         value: _anim.value,
         minHeight: 3,
-        backgroundColor: kColorStone,
-        valueColor: const AlwaysStoppedAnimation(kColorPrimary),
+        backgroundColor: Colors.white24,
+        valueColor: const AlwaysStoppedAnimation(Colors.white),
       ),
     );
   }

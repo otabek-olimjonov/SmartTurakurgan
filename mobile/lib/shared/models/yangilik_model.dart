@@ -10,8 +10,9 @@ class YangilikModel {
   final String? publishedAt;
   final Map<String, dynamic> translations;
   final String updatedAt;
+  List<String> imageUrls;
 
-  const YangilikModel({
+  YangilikModel({
     required this.id,
     required this.title,
     this.body,
@@ -21,6 +22,7 @@ class YangilikModel {
     this.publishedAt,
     this.translations = const {},
     required this.updatedAt,
+    this.imageUrls = const [],
   });
 
   factory YangilikModel.fromMap(Map<String, dynamic> map) {

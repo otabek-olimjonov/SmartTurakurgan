@@ -68,14 +68,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             children: [
               const Spacer(flex: 2),
               // Logo / Brand
-              Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: kColorPrimary,
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: const Icon(Icons.location_city, color: kColorWhite, size: 36),
+              Image.asset(
+                'assets/images/logo.png',
+                width: 120,
+                height: 120,
               ),
               const SizedBox(height: 20),
               const Text('Smart Turakurgan',

@@ -19,7 +19,20 @@ class YangilikRepository {
     final db = await LocalDatabase.instance;
     final rows = await db.query('yangiliklar', where: 'id = ?', whereArgs: [id]);
     if (rows.isEmpty) return null;
-    return YangilikModel.fromMap(rows.first);
+    final news = YangilikModel.fromMap(rows.first);
+    final imgRows = await db.query(
+      'yangilik_images',
+      where: 'yangilik_id = ?',
+      whereArgs: [id],
+      orderBy: 'is_main DESC, sort_order ASC',
+    );
+    news.imageUrls = imgRows.map((r) => r['image_url'] as String).toList();
+    // Prepend coverImageUrl if not in imageUrls
+    if (news.coverImageUrl != null &&
+        news.imageUrls.isEmpty) {
+      news.imageUrls = [news.coverImageUrl!];
+    }
+    return news;
   }
 }
 

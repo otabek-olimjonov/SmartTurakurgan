@@ -39,8 +39,20 @@ serve(async (req: Request) => {
       return jsonResponse({ error: 'Failed to fetch news' }, 500)
     }
 
+    const newsIds = (data ?? []).map((n: Record<string, unknown>) => n.id as string)
+    let yangilik_images: unknown[] = []
+    if (newsIds.length > 0) {
+      const { data: imgData } = await supabase
+        .from('yangilik_images')
+        .select('*')
+        .in('yangilik_id', newsIds)
+        .order('sort_order', { ascending: true })
+      yangilik_images = imgData ?? []
+    }
+
     return jsonResponse({
       yangiliklar: data ?? [],
+      yangilik_images,
       fetched_at:  new Date().toISOString(),
     })
   } catch (err) {

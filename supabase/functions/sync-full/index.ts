@@ -37,6 +37,7 @@ serve(async (req: Request) => {
       placesResult,
       place_imagesResult,
       yangilikResult,
+      yangilik_imagesResult,
     ] = await Promise.all([
       supabase
         .from('rahbariyat')
@@ -78,6 +79,11 @@ serve(async (req: Request) => {
         .eq('is_published', true)
         .order('published_at', { ascending: false })
         .limit(50),
+
+      supabase
+        .from('yangilik_images')
+        .select('*')
+        .order('sort_order', { ascending: true }),
     ])
 
     // Check for errors
@@ -89,6 +95,7 @@ serve(async (req: Request) => {
       placesResult.error,
       place_imagesResult.error,
       yangilikResult.error,
+      yangilik_imagesResult.error,
     ].filter(Boolean)
 
     if (errors.length > 0) {
@@ -104,6 +111,7 @@ serve(async (req: Request) => {
       places:            placesResult.data            ?? [],
       place_images:      place_imagesResult.data      ?? [],
       yangiliklar:       yangilikResult.data          ?? [],
+      yangilik_images:   yangilik_imagesResult.data   ?? [],
       synced_at:         new Date().toISOString(),
     })
   } catch (err) {

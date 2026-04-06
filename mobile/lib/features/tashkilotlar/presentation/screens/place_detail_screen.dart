@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:smart_turakurgan/shared/widgets/image_carousel.dart';
 import 'package:smart_turakurgan/shared/widgets/loading_widgets.dart';
 import 'package:smart_turakurgan/core/theme/colors.dart';
 import 'package:smart_turakurgan/core/locale/locale_provider.dart';
@@ -33,27 +33,25 @@ class PlaceDetailScreen extends ConsumerWidget {
           return CustomScrollView(
             slivers: [
               SliverAppBar(
-                expandedHeight: place.imageUrls.isNotEmpty ? 260 : 0,
                 pinned: true,
                 leading: const BackButton(),
-                flexibleSpace: place.imageUrls.isNotEmpty
-                    ? FlexibleSpaceBar(
-                        background: PageView.builder(
-                          itemCount: place.imageUrls.length,
-                          itemBuilder: (_, i) => CachedNetworkImage(
-                            imageUrl: place.imageUrls[i],
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      )
-                    : null,
+                title: Text(place.localizedName(lang),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                backgroundColor: Colors.white,
+                foregroundColor: kColorInk,
+                elevation: 0.5,
+                expandedHeight: 0,
               ),
               SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ImageCarousel(imageUrls: place.imageUrls, height: 270),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                       Text(place.localizedName(lang),
                           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: kColorInk)),
                       if (place.localizedDirector(lang) != null) ...[
@@ -131,8 +129,10 @@ class PlaceDetailScreen extends ConsumerWidget {
                         ),
                       ],
                       const SizedBox(height: 32),
-                    ],
-                  ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

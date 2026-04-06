@@ -9,25 +9,33 @@ import 'package:smart_turakurgan/core/db/local_database.dart';
 const _lastSyncKey = 'last_sync_at';
 const _firstInstallKey = 'first_install_done';
 
+typedef SyncProgressCallback = void Function(double progress, String message);
+
 class SyncEngine {
   final Dio _dio;
 
   SyncEngine(this._dio);
 
-  Future<void> runSync() async {
+  Future<void> runSync({SyncProgressCallback? onProgress}) async {
     final prefs = await SharedPreferences.getInstance();
     final firstDone = prefs.getBool(_firstInstallKey) ?? false;
 
+    onProgress?.call(0.1, 'Ma\'lumotlar tekshirilmoqda...');
+
     if (!firstDone || kDebugMode) {
+      onProgress?.call(0.2, 'Birinchi marta yuklash...');
       await _fullSync();
       await prefs.setBool(_firstInstallKey, true);
     } else {
       final shouldSync = _shouldSync(prefs);
       if (shouldSync) {
+        onProgress?.call(0.2, 'Ma\'lumotlar yangilanmoqda...');
         await _deltaSync(prefs);
       }
     }
+    onProgress?.call(0.75, 'Yangiliklar yuklanmoqda...');
     await _newsSync();
+    onProgress?.call(1.0, 'Tayyor!');
   }
 
   bool _shouldSync(SharedPreferences prefs) {

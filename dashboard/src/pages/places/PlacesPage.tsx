@@ -4,13 +4,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, ImageOff } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import Textarea from '../../components/ui/Textarea'
 import Modal from '../../components/ui/Modal'
 import Pagination from '../../components/ui/Pagination'
+import ImageUploader, { type ManagedImage } from '../../components/ui/ImageUploader'
 
 const PAGE_SIZE = 20
 
@@ -57,6 +58,8 @@ const schema = z.object({
 })
 type FormData = z.infer<typeof schema>
 
+type PlaceImage = { image_url: string; is_main: boolean }
+
 type Place = {
   id: string
   name: string
@@ -68,6 +71,7 @@ type Place = {
   location_lng: number | null
   rating: number
   is_published: boolean
+  place_images: PlaceImage[]
 }
 
 async function fetchPlaces(group: string, page: number) {
@@ -75,7 +79,7 @@ async function fetchPlaces(group: string, page: number) {
   const from = (page - 1) * PAGE_SIZE
   const { data, count, error } = await supabase
     .from('places')
-    .select('*', { count: 'exact' })
+    .select('*, place_images(image_url, is_main)', { count: 'exact' })
     .in('category', categories)
     .order('name')
     .range(from, from + PAGE_SIZE - 1)
@@ -89,6 +93,7 @@ export default function PlacesPage() {
   const [page, setPage] = useState(1)
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<Place | null>(null)
+  const [images, setImages] = useState<ManagedImage[]>([])
 
   const { data, isLoading } = useQuery({
     queryKey: ['places', category, page],
@@ -104,6 +109,7 @@ export default function PlacesPage() {
 
   function openCreate() {
     setEditing(null)
+    setImages([])
     const defaultCategory = (CATEGORY_GROUPS[category] ?? [category])[0]
     reset({ category: defaultCategory, is_published: true })
     setModalOpen(true)
@@ -111,6 +117,7 @@ export default function PlacesPage() {
 
   function openEdit(p: Place) {
     setEditing(p)
+    setImages((p.place_images ?? []).map(img => ({ url: img.image_url, is_main: img.is_main })))
     reset({
       name: p.name,
       category: p.category,
@@ -131,11 +138,28 @@ export default function PlacesPage() {
         location_lat: values.location_lat === '' ? null : values.location_lat,
         location_lng: values.location_lng === '' ? null : values.location_lng,
       }
+      let placeId: string
       if (editing) {
         const { error } = await supabase.from('places').update(payload).eq('id', editing.id)
         if (error) throw error
+        placeId = editing.id
       } else {
-        const { error } = await supabase.from('places').insert(payload)
+        const { data, error } = await supabase.from('places').insert(payload).select('id').single()
+        if (error) throw error
+        placeId = data.id
+      }
+
+      // Replace all place_images with current state
+      await supabase.from('place_images').delete().eq('place_id', placeId)
+      if (images.length > 0) {
+        const { error } = await supabase.from('place_images').insert(
+          images.map((img, i) => ({
+            place_id: placeId,
+            image_url: img.url,
+            is_main: img.is_main,
+            sort_order: i,
+          }))
+        )
         if (error) throw error
       }
     },
@@ -177,6 +201,7 @@ export default function PlacesPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[#E8E6E1] bg-[#F7F6F3]">
+                <th className="px-4 py-2.5 w-14" />
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-[#888780]">Nomi</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-[#888780]">Direktor</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-[#888780]">Telefon</th>
@@ -186,8 +211,19 @@ export default function PlacesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E8E6E1]">
-              {data.data.map((p) => (
+              {data.data.map((p) => {
+                const mainImg = p.place_images?.find(img => img.is_main) ?? p.place_images?.[0]
+                return (
                 <tr key={p.id} className="hover:bg-[#F7F6F3] transition-colors">
+                  <td className="px-4 py-2.5">
+                    {mainImg ? (
+                      <img src={mainImg.image_url} alt="" className="w-10 h-10 rounded-lg object-cover border border-[#E8E6E1]" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-[#F7F6F3] border border-[#E8E6E1] flex items-center justify-center">
+                        <ImageOff size={14} className="text-[#E8E6E1]" />
+                      </div>
+                    )}
+                  </td>
                   <td className="px-4 py-3 font-medium text-[#0A0A0A]">{p.name}</td>
                   <td className="px-4 py-3 text-[#888780]">{p.director ?? '—'}</td>
                   <td className="px-4 py-3 text-[#888780]">{p.phone ?? '—'}</td>
@@ -211,7 +247,8 @@ export default function PlacesPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
+                )
+              })}
             </tbody>
           </table>
           <Pagination page={page} totalPages={totalPages} onChange={setPage} />
@@ -224,35 +261,38 @@ export default function PlacesPage() {
         onClose={() => setModalOpen(false)}
         size="lg"
       >
-        <form onSubmit={handleSubmit((v) => saveMutation.mutateAsync(v as FormData))} className="flex flex-col gap-4">
-          <Input label="Nomi *" error={errors.name?.message} {...register('name')} />
-          <div className="grid grid-cols-2 gap-4">
-            <Input label="Direktor / Rahbar" {...register('director')} />
-            <Input label="Telefon" {...register('phone')} />
+        <form onSubmit={handleSubmit((v) => saveMutation.mutateAsync(v as FormData))}>
+          <div className="flex flex-col gap-4 max-h-[65vh] overflow-y-auto pr-1 pb-1">
+            <ImageUploader value={images} onChange={setImages} folder="places" disabled={isSubmitting} />
+            <Input label="Nomi *" error={errors.name?.message} {...register('name')} />
+            <div className="grid grid-cols-2 gap-4">
+              <Input label="Direktor / Rahbar" {...register('director')} />
+              <Input label="Telefon" {...register('phone')} />
+            </div>
+            <Textarea label="Tavsif" rows={3} {...register('description')} />
+            <div className="grid grid-cols-2 gap-4">
+              <Input label="Kenglik (lat)" type="number" step="any" {...register('location_lat')} />
+              <Input label="Uzunlik (lng)" type="number" step="any" {...register('location_lng')} />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-[#0A0A0A]">Kategoriya</label>
+              <select
+                {...register('category')}
+                className="h-9 rounded-lg border border-[#E8E6E1] px-3 text-sm text-[#0A0A0A] bg-white focus:outline-none focus:ring-1 focus:ring-[#1D9E75]"
+              >
+                {(CATEGORY_OPTIONS[category] ?? [{ value: category, label: category }]).map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <input type="checkbox" id="is_published" {...register('is_published')} />
+              <label htmlFor="is_published" className="text-sm">Chop etilgan</label>
+            </div>
           </div>
-          <Textarea label="Tavsif" rows={3} {...register('description')} />
-          <div className="grid grid-cols-2 gap-4">
-            <Input label="Kenglik (lat)" type="number" step="any" {...register('location_lat')} />
-            <Input label="Uzunlik (lng)" type="number" step="any" {...register('location_lng')} />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-[#0A0A0A]">Kategoriya</label>
-            <select
-              {...register('category')}
-              className="h-9 rounded-lg border border-[#E8E6E1] px-3 text-sm text-[#0A0A0A] bg-white focus:outline-none focus:ring-1 focus:ring-[#1D9E75]"
-            >
-              {(CATEGORY_OPTIONS[category] ?? [{ value: category, label: category }]).map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-          </div>
-          <div className="flex items-center gap-2">
-            <input type="checkbox" id="is_published" {...register('is_published')} />
-            <label htmlFor="is_published" className="text-sm">Chop etilgan</label>
-          </div>
-          <div className="flex justify-end gap-2 mt-2">
+          <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-[#E8E6E1]">
             <Button type="button" onClick={() => setModalOpen(false)}>Bekor qilish</Button>
-            <Button type="submit" variant="primary" loading={isSubmitting}>Saqlash</Button>
+            <Button type="submit" variant="primary" loading={isSubmitting || saveMutation.isPending}>Saqlash</Button>
           </div>
         </form>
       </Modal>

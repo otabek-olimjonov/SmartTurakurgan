@@ -16,6 +16,7 @@ import 'core/sync/sync_engine.dart';
 import 'features/home/presentation/screens/login_screen.dart';
 import 'features/home/presentation/screens/onboarding_screen.dart';
 import 'features/home/presentation/screens/main_shell.dart';
+import 'features/home/presentation/screens/splash_screen.dart';
 import 'features/hokimiyat/presentation/screens/hokimiyat_screen.dart';
 import 'features/tashkilotlar/presentation/screens/place_list_screen.dart';
 import 'features/boglanish/presentation/screens/boglanish_screen.dart';
@@ -155,7 +156,7 @@ class _AppRoot extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authAsync = ref.watch(authProvider);
     return authAsync.when(
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      loading: () => const SplashScreen(),
       error: (_, __) => const LoginScreen(),
       data: (auth) {
         if (auth.status == AuthStatus.unauthenticated) return const LoginScreen();
@@ -176,6 +177,8 @@ class _SyncBootstrap extends ConsumerStatefulWidget {
 
 class _SyncBootstrapState extends ConsumerState<_SyncBootstrap> {
   bool _synced = false;
+  double _progress = 0.0;
+  String _message = 'Ma\'lumotlar tekshirilmoqda...';
 
   @override
   void initState() {
@@ -186,16 +189,18 @@ class _SyncBootstrapState extends ConsumerState<_SyncBootstrap> {
   Future<void> _kickoffSync() async {
     final jwt = await SecureStorage.getJwt();
     final dio = buildDio(jwt);
-    await SyncEngine(dio).runSync();
+    await SyncEngine(dio).runSync(
+      onProgress: (progress, message) {
+        if (mounted) setState(() { _progress = progress; _message = message; });
+      },
+    );
     if (mounted) setState(() => _synced = true);
   }
 
   @override
   Widget build(BuildContext context) {
     if (!_synced) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return SplashScreen(progress: _progress, message: _message);
     }
     return widget.child;
   }

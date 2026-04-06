@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, ImageOff } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
@@ -12,6 +12,7 @@ import Select from '../../components/ui/Select'
 import Modal from '../../components/ui/Modal'
 import Pagination from '../../components/ui/Pagination'
 import { formatDate } from '../../lib/utils'
+import ImageUploader, { type ManagedImage } from '../../components/ui/ImageUploader'
 
 const PAGE_SIZE = 20
 
@@ -26,7 +27,6 @@ const CATEGORIES = [
 const schema = z.object({
   title: z.string().min(2, 'Sarlavhani kiriting'),
   body: z.string().optional(),
-  cover_image_url: z.string().optional(),
   category: z.string().default('general'),
   is_published: z.boolean().default(true),
 })
@@ -58,6 +58,7 @@ export default function YangilikPage() {
   const [page, setPage] = useState(1)
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<Yangilik | null>(null)
+  const [images, setImages] = useState<ManagedImage[]>([])
 
   const { data, isLoading } = useQuery({ queryKey: ['yangiliklar', page], queryFn: () => fetchYangiliklar(page) })
 
@@ -65,23 +66,49 @@ export default function YangilikPage() {
 
   function openCreate() {
     setEditing(null)
+    setImages([])
     reset({ category: 'general', is_published: true })
     setModalOpen(true)
   }
-  function openEdit(n: Yangilik) {
+  async function openEdit(n: Yangilik) {
     setEditing(n)
-    reset({ title: n.title, body: n.body ?? '', cover_image_url: n.cover_image_url ?? '', category: n.category, is_published: n.is_published })
+    const { data: imgs } = await supabase
+      .from('yangilik_images')
+      .select('image_url, is_main')
+      .eq('yangilik_id', n.id)
+      .order('sort_order')
+    let managed: ManagedImage[] = (imgs ?? []).map(img => ({ url: img.image_url, is_main: img.is_main }))
+    if (managed.length === 0 && n.cover_image_url) managed = [{ url: n.cover_image_url, is_main: true }]
+    setImages(managed)
+    reset({ title: n.title, body: n.body ?? '', category: n.category, is_published: n.is_published })
     setModalOpen(true)
   }
 
   const saveMutation = useMutation({
     mutationFn: async (values: FormData) => {
-      const payload = { ...values, cover_image_url: values.cover_image_url === '' ? null : values.cover_image_url }
+      const mainImg = images.find(img => img.is_main) ?? images[0]
+      const cover_image_url = mainImg?.url ?? null
+      const payload = { ...values, cover_image_url }
+      let yangilikId: string
       if (editing) {
         const { error } = await supabase.from('yangiliklar').update(payload).eq('id', editing.id)
         if (error) throw error
+        yangilikId = editing.id
       } else {
-        const { error } = await supabase.from('yangiliklar').insert(payload)
+        const { data, error } = await supabase.from('yangiliklar').insert(payload).select('id').single()
+        if (error) throw error
+        yangilikId = data.id
+      }
+      // sync yangilik_images
+      await supabase.from('yangilik_images').delete().eq('yangilik_id', yangilikId)
+      if (images.length > 0) {
+        const rows = images.map((img, idx) => ({
+          yangilik_id: yangilikId,
+          image_url: img.url,
+          is_main: img.is_main,
+          sort_order: idx,
+        }))
+        const { error } = await supabase.from('yangilik_images').insert(rows)
         if (error) throw error
       }
     },
@@ -118,6 +145,7 @@ export default function YangilikPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[#E8E6E1] bg-[#F7F6F3]">
+                <th className="px-4 py-2.5 w-14" />
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-[#888780]">Sarlavha</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-[#888780]">Kategoriya</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-[#888780]">Sana</th>
@@ -128,6 +156,15 @@ export default function YangilikPage() {
             <tbody className="divide-y divide-[#E8E6E1]">
               {data.data.map((n) => (
                 <tr key={n.id} className="hover:bg-[#F7F6F3] transition-colors">
+                  <td className="px-4 py-2.5">
+                    {n.cover_image_url ? (
+                      <img src={n.cover_image_url} alt="" className="w-10 h-10 rounded-lg object-cover border border-[#E8E6E1]" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-[#F7F6F3] border border-[#E8E6E1] flex items-center justify-center">
+                        <ImageOff size={14} className="text-[#E8E6E1]" />
+                      </div>
+                    )}
+                  </td>
                   <td className="px-4 py-3 font-medium text-[#0A0A0A] max-w-xs">
                     <p className="truncate">{n.title}</p>
                   </td>
@@ -153,18 +190,20 @@ export default function YangilikPage() {
       )}
 
       <Modal open={modalOpen} title={editing ? "Yangilikni tahrirlash" : "Yangi yangilik"} onClose={() => setModalOpen(false)} size="lg">
-        <form onSubmit={handleSubmit((v) => saveMutation.mutateAsync(v as unknown as FormData))} className="flex flex-col gap-4">
-          <Input label="Sarlavha *" error={errors.title?.message} {...register('title')} />
-          <Select label="Kategoriya" options={CATEGORIES} {...register('category')} />
-          <Input label="Muqova rasm URL" {...register('cover_image_url')} />
-          <Textarea label="Matn" rows={6} {...register('body')} />
-          <div className="flex items-center gap-2">
-            <input type="checkbox" id="is_published" {...register('is_published')} />
-            <label htmlFor="is_published" className="text-sm">Chop etilgan</label>
+        <form onSubmit={handleSubmit((v) => saveMutation.mutateAsync(v as unknown as FormData))}>
+          <div className="flex flex-col gap-4 max-h-[65vh] overflow-y-auto pr-1 pb-1">
+            <ImageUploader value={images} onChange={setImages} folder="news" disabled={isSubmitting} />
+            <Input label="Sarlavha *" error={errors.title?.message} {...register('title')} />
+            <Select label="Kategoriya" options={CATEGORIES} {...register('category')} />
+            <Textarea label="Matn" rows={6} {...register('body')} />
+            <div className="flex items-center gap-2">
+              <input type="checkbox" id="is_published" {...register('is_published')} />
+              <label htmlFor="is_published" className="text-sm">Chop etilgan</label>
+            </div>
           </div>
-          <div className="flex justify-end gap-2 mt-2">
+          <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-[#E8E6E1]">
             <Button type="button" onClick={() => setModalOpen(false)}>Bekor qilish</Button>
-            <Button type="submit" variant="primary" loading={isSubmitting}>Saqlash</Button>
+            <Button type="submit" variant="primary" loading={isSubmitting || saveMutation.isPending}>Saqlash</Button>
           </div>
         </form>
       </Modal>

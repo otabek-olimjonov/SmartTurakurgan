@@ -121,23 +121,27 @@ class YerMaydonModel {
 }
 
 class HokimiyatRepository {
-  Future<List<RahbariyatModel>> getByCategory(String category) async {
+  Future<List<RahbariyatModel>> getByCategory(String category, {int limit = 20, int offset = 0}) async {
     final db = await LocalDatabase.instance;
     final rows = await db.query(
       'rahbariyat',
       where: 'category = ? AND is_published = 1',
       whereArgs: [category],
       orderBy: 'sort_order ASC',
+      limit: limit,
+      offset: offset,
     );
     return rows.map(RahbariyatModel.fromMap).toList();
   }
 
-  Future<List<MahallalarModel>> getMahallalar() async {
+  Future<List<MahallalarModel>> getMahallalar({int limit = 20, int offset = 0}) async {
     final db = await LocalDatabase.instance;
     final rows = await db.query(
       'mahallalar',
       where: 'is_published = 1',
       orderBy: 'name ASC',
+      limit: limit,
+      offset: offset,
     );
     return rows.map(MahallalarModel.fromMap).toList();
   }
@@ -153,12 +157,14 @@ class HokimiyatRepository {
     return rows.map(RahbariyatModel.fromMap).toList();
   }
 
-  Future<List<YerMaydonModel>> getYerMaydonlari() async {
+  Future<List<YerMaydonModel>> getYerMaydonlari({int limit = 20, int offset = 0}) async {
     final db = await LocalDatabase.instance;
     final rows = await db.query(
       'yer_maydonlari',
       where: 'is_published = 1',
       orderBy: 'rowid DESC',
+      limit: limit,
+      offset: offset,
     );
     return rows.map(YerMaydonModel.fromMap).toList();
   }

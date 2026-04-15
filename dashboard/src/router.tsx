@@ -12,6 +12,13 @@ import YangilikPage from './pages/yangiliklar/YangilikPage'
 import MurojaatlarPage from './pages/murojaatlar/MurojaatlarPage'
 import NotificationsPage from './pages/notifications/NotificationsPage'
 import AdminUsersPage from './pages/admins/AdminUsersPage'
+import PublicShell from './components/public/PublicShell'
+import PortalHomePage from './pages/portal/PortalHomePage'
+import PortalHokimiyatPage from './pages/portal/PortalHokimiyatPage'
+import PortalPlacesPage from './pages/portal/PortalPlacesPage'
+import PortalNewsPage from './pages/portal/PortalNewsPage'
+import PortalNewsDetailPage from './pages/portal/PortalNewsDetailPage'
+import PortalBoglanishPage from './pages/portal/PortalBoglanishPage'
 
 function RequireAuth() {
   const { session, loading } = useAuthStore()
@@ -29,13 +36,29 @@ function RequireAuth() {
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   { path: '/accept-invite', element: <AcceptInvitePage /> },
+
+  // Public citizen portal — no auth required
+  {
+    path: '/',
+    element: <PublicShell />,
+    children: [
+      { index: true, element: <PortalHomePage /> },
+      { path: 'hokimiyat', element: <PortalHokimiyatPage /> },
+      { path: 'yangiliklar', element: <PortalNewsPage /> },
+      { path: 'yangiliklar/:id', element: <PortalNewsDetailPage /> },
+      { path: 'boglanish', element: <PortalBoglanishPage /> },
+      // :section catches turizm | talim | tibbiyot | tashkilotlar — must come last
+      { path: ':section', element: <PortalPlacesPage /> },
+    ],
+  },
+
+  // Admin dashboard — requires auth
   {
     element: <RequireAuth />,
     children: [
       {
         element: <Shell />,
         children: [
-          { index: true, element: <Navigate to="/dashboard" replace /> },
           { path: 'dashboard', element: <DashboardPage /> },
           { path: 'rahbariyat', element: <RahbariyatPage /> },
           { path: 'mahallalar', element: <MahallalarPage /> },

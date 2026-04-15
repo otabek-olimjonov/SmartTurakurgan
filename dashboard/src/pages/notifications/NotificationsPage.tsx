@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -7,7 +8,10 @@ import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import Textarea from '../../components/ui/Textarea'
 import Select from '../../components/ui/Select'
+import Pagination from '../../components/ui/Pagination'
 import { formatDate } from '../../lib/utils'
+
+const PAGE_SIZE = 20
 
 const TARGET_OPTIONS = [
   { value: 'all', label: 'Barcha foydalanuvchilar' },
@@ -29,19 +33,21 @@ type Bildirishnoma = {
   created_at: string
 }
 
-async function fetchNotifications() {
-  const { data, error } = await supabase
+async function fetchNotifications(page: number) {
+  const from = (page - 1) * PAGE_SIZE
+  const { data, count, error } = await supabase
     .from('bildirishnomalar')
-    .select('*')
+    .select('*', { count: 'exact' })
     .order('created_at', { ascending: false })
-    .limit(50)
+    .range(from, from + PAGE_SIZE - 1)
   if (error) throw error
-  return data as Bildirishnoma[]
+  return { data: data as Bildirishnoma[], count: count ?? 0 }
 }
 
 export default function NotificationsPage() {
   const qc = useQueryClient()
-  const { data, isLoading } = useQuery({ queryKey: ['notifications'], queryFn: fetchNotifications })
+  const [page, setPage] = useState(1)
+  const { data, isLoading } = useQuery({ queryKey: ['notifications', page], queryFn: () => fetchNotifications(page) })
 
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({ resolver: zodResolver(schema) as any })
 
@@ -55,6 +61,8 @@ export default function NotificationsPage() {
       reset({ title: '', body: '', target: 'all' })
     },
   })
+
+  const totalPages = Math.ceil((data?.count ?? 0) / PAGE_SIZE)
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -81,7 +89,12 @@ export default function NotificationsPage() {
 
       {/* History */}
       <div className="bg-white border border-[#E8E6E1] rounded-xl p-5">
-        <h2 className="text-sm font-medium mb-4">Yuborilgan bildirishnomalar</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-medium">Yuborilgan bildirishnomalar</h2>
+          {data?.count != null && (
+            <span className="text-xs text-[#888780]">{data.count} ta</span>
+          )}
+        </div>
         {isLoading && (
           <div className="flex flex-col gap-2">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -89,11 +102,11 @@ export default function NotificationsPage() {
             ))}
           </div>
         )}
-        {data?.length === 0 && (
+        {data?.data.length === 0 && (
           <p className="text-xs text-[#888780]">Bildirishnomalar yo'q</p>
         )}
         <div className="flex flex-col divide-y divide-[#E8E6E1]">
-          {data?.map((n) => (
+          {data?.data.map((n) => (
             <div key={n.id} className="py-3">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-sm font-medium text-[#0A0A0A]">{n.title}</p>
@@ -106,6 +119,7 @@ export default function NotificationsPage() {
             </div>
           ))}
         </div>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} />
       </div>
     </div>
   )

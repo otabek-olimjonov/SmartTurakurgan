@@ -7,39 +7,103 @@ import 'package:smart_turakurgan/core/theme/colors.dart';
 import 'package:smart_turakurgan/features/yangiliklar/data/repositories/yangilik_repository.dart';
 import 'package:smart_turakurgan/l10n/app_localizations.dart';
 import 'package:smart_turakurgan/core/locale/locale_provider.dart';
+import 'package:smart_turakurgan/shared/models/yangilik_model.dart';
 
-class NewsScreen extends ConsumerWidget {
+const int _kPageSize = 20;
+
+class NewsScreen extends ConsumerStatefulWidget {
   const NewsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final newsAsync = ref.watch(newsProvider);
+  ConsumerState<NewsScreen> createState() => _NewsScreenState();
+}
+
+class _NewsScreenState extends ConsumerState<NewsScreen> {
+  final ScrollController _sc = ScrollController();
+  final List<YangilikModel> _items = [];
+  int _offset = 0;
+  bool _hasMore = true;
+  bool _loading = false;
+  bool _initialLoad = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMore();
+    _sc.addListener(() {
+      if (_sc.position.pixels >= _sc.position.maxScrollExtent - 150 &&
+          !_loading && _hasMore) {
+        _loadMore();
+      }
+    });
+  }
+
+  Future<void> _loadMore() async {
+    if (_loading) return;
+    setState(() => _loading = true);
+    final repo = ref.read(yangilikRepositoryProvider);
+    final items = await repo.getNews(limit: _kPageSize, offset: _offset);
+    setState(() {
+      _items.addAll(items);
+      _offset += items.length;
+      _hasMore = items.length == _kPageSize;
+      _loading = false;
+      _initialLoad = false;
+    });
+  }
+
+  @override
+  void dispose() {
+    _sc.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final lang = localeKey(ref.watch(localeProvider));
+    final l10n = AppLocalizations.of(context);
+
+    if (_initialLoad) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.navNews)),
+        backgroundColor: kColorCream,
+        body: const LoadingCardList(),
+      );
+    }
+
+    if (_items.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.navNews)),
+        backgroundColor: kColorCream,
+        body: const EmptyView(message: 'Yangiliklar topilmadi'),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(title: Text(AppLocalizations.of(context).navNews)),
+      appBar: AppBar(title: Text(l10n.navNews)),
       backgroundColor: kColorCream,
-      body: newsAsync.when(
-        loading: () => const LoadingCardList(),
-        error: (e, _) => ErrorView(message: e.toString()),
-        data: (news) {
-          if (news.isEmpty) return const EmptyView(message: 'Yangiliklar topilmadi');
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: news.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (context, index) {
-              final n = news[index];
-              return NewsCard(
-                title: n.localizedTitle(lang),
-                coverImageUrl: n.coverImageUrl,
-                category: n.category,
-                publishedAt: n.publishedAt,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => NewsDetailScreen(newsId: n.id)),
-                ),
-              );
-            },
+      body: ListView.separated(
+        controller: _sc,
+        padding: const EdgeInsets.all(16),
+        itemCount: _items.length + (_hasMore ? 1 : 0),
+        separatorBuilder: (_, __) => const SizedBox(height: 10),
+        itemBuilder: (context, index) {
+          if (index >= _items.length) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(child: CircularProgressIndicator(color: kColorPrimary, strokeWidth: 2)),
+            );
+          }
+          final n = _items[index];
+          return NewsCard(
+            title: n.localizedTitle(lang),
+            coverImageUrl: n.coverImageUrl,
+            category: n.category,
+            publishedAt: n.publishedAt,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => NewsDetailScreen(newsId: n.id)),
+            ),
           );
         },
       ),

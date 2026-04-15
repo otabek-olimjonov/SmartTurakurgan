@@ -1,16 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:smart_turakurgan/core/db/local_database.dart';
 import 'package:smart_turakurgan/shared/models/place_model.dart';
 
 class PlacesRepository {
-  Future<List<PlaceModel>> getByCategory(String category) async {
+  Future<List<PlaceModel>> getByCategory(String category, {int limit = 20, int offset = 0}) async {
     final db = await LocalDatabase.instance;
     final rows = await db.query(
       'places',
       where: 'category = ? AND is_published = 1',
       whereArgs: [category],
       orderBy: 'name ASC',
+      limit: limit,
+      offset: offset,
     );
 
     final places = rows.map(PlaceModel.fromMap).toList();
